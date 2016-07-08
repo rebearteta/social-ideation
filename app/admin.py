@@ -299,7 +299,8 @@ class SocialNetworkAppUserAdmin(admin.ModelAdmin):
         try:
             ret_token = call_social_network_api(obj.snapp.connector, 'get_long_lived_access_token', params)
             obj.access_token = ret_token['access_token']
-            obj.access_token_exp = calculate_token_expiration_time(ret_token['expiration'])
+            #obj.access_token_exp = calculate_token_expiration_time(ret_token['expiration'])
+            obj.access_token_exp = calculate_token_expiration_time('5184000')
             obj.save()
             messages.success(request, 'It was successfully obtained the user\'s long-lived access token')
         except ConnectorError:

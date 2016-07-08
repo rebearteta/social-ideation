@@ -43,7 +43,7 @@ class SocialNetworkApp(models.Model):
     app_id = models.CharField(max_length=50)
     app_secret = models.CharField(max_length=50, null=True, blank=True)
     redirect_uri = models.URLField(null=True, blank=True)
-    community = models.ForeignKey(SocialNetworkAppCommunity, default=None)
+    community = models.ForeignKey(SocialNetworkAppCommunity, null=True, blank=True)
     app_access_token = models.CharField(max_length=300, null=True, blank=True)
     callback_real_time_updates = models.URLField(null=True, blank=True)
     object_real_time_updates = models.CharField(max_length=100, null=True, blank=True, default='page')

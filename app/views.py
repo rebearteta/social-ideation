@@ -245,7 +245,8 @@ def _save_user(user_id, access_token, initiative_url, type_permission):
         try:
             user = SocialNetworkAppUser.objects.get(external_id=user_id)
             user.access_token = ret_token['access_token']
-            user.access_token_exp = calculate_token_expiration_time(ret_token['expiration'])
+            #user.access_token_exp = calculate_token_expiration_time(ret_token['expiration'])
+            user.access_token_exp = calculate_token_expiration_time('5184000')
             if type_permission == 'write':
                 user.write_permissions = True
             else:
@@ -254,7 +255,8 @@ def _save_user(user_id, access_token, initiative_url, type_permission):
         except SocialNetworkAppUser.DoesNotExist:
             user_fb = Facebook.get_info_user(fb_app, user_id, access_token)
             new_app_user = {'email': user_fb['email'].lower(), 'snapp': fb_app, 'access_token': ret_token['access_token'],
-                            'access_token_exp': calculate_token_expiration_time(ret_token['expiration']),
+                            #'access_token_exp': calculate_token_expiration_time(ret_token['expiration']),
+                            'access_token_exp': calculate_token_expiration_time('5184000'),
                             'external_id': user_id}
             if type_permission == 'write':
                 new_app_user.update({'write_permissions': True})

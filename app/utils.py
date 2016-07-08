@@ -146,7 +146,7 @@ def get_timezone_aware_datetime(datetime):
     return timezone.make_aware(datetime, timezone.get_default_timezone())
 
 
-def calculate_token_expiration_time(secs):
+def calculate_token_expiration_time(secs = '5184000'):
     str_secs = convert_to_utf8_str(secs)
     int_secs = int(str_secs)
     return datetime.datetime.now() + datetime.timedelta(seconds=int_secs)

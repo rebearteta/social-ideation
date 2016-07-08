@@ -131,7 +131,8 @@ class Facebook(SocialNetworkBase):
         else:
             str_resp = resp.text
             resps = str_resp.split('&')
-            return {'access_token': resps[0].split('=')[1], 'expiration': resps[1].split('=')[1]}
+            return {'access_token': resps[0].split('=')[1], 'expiration': '5184000'}
+            #return {'access_token': resps[0].split('=')[1], 'expiration': resps[1].split('=')[1]}
 
     @classmethod
     def get_long_lived_page_token(cls, app_id, app_secret, access_token, page_id):
@@ -173,7 +174,8 @@ class Facebook(SocialNetworkBase):
                                                                         app.app_id, app.app_secret)
                 token = access_token_info['access_token']
                 app_user.access_token = token
-                app_user.access_token_exp = calculate_token_expiration_time(access_token_info['expires_in'])
+                app_user.access_token_exp = calculate_token_expiration_time('5184000')
+                #app_user.access_token_exp = calculate_token_expiration_time(access_token_info['expires_in'])
                 app_user.save()
             else:
                 if app.app_access_token:
