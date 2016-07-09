@@ -181,3 +181,5 @@ LOGGING = {
         },
     }
 }
+
+ACCESS_TOKEN_EXP = '5184000'

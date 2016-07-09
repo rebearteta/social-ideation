@@ -1,5 +1,6 @@
 from app.utils import calculate_token_expiration_time
 from connectors.error import ConnectorError
+from social_ideation.settings import ACCESS_TOKEN_EXP
 
 import abc
 import facebook
@@ -131,7 +132,7 @@ class Facebook(SocialNetworkBase):
         else:
             str_resp = resp.text
             resps = str_resp.split('&')
-            return {'access_token': resps[0].split('=')[1], 'expiration': '5184000'}
+            return {'access_token': resps[0].split('=')[1], 'expiration': ACCESS_TOKEN_EXP}
             #return {'access_token': resps[0].split('=')[1], 'expiration': resps[1].split('=')[1]}
 
     @classmethod
@@ -174,7 +175,7 @@ class Facebook(SocialNetworkBase):
                                                                         app.app_id, app.app_secret)
                 token = access_token_info['access_token']
                 app_user.access_token = token
-                app_user.access_token_exp = calculate_token_expiration_time('5184000')
+                app_user.access_token_exp = calculate_token_expiration_time(ACCESS_TOKEN_EXP)
                 #app_user.access_token_exp = calculate_token_expiration_time(access_token_info['expires_in'])
                 app_user.save()
             else:
