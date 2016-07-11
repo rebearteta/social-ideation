@@ -94,11 +94,11 @@ ADMINS = (
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': '',
-        'USER': '',
-        'PASSWORD': '',
+        'NAME': 'social_ideation',
+        'USER': 'root',
+        'PASSWORD': '***REMOVED***',
         'HOST': '127.0.0.1',
-        'PORT': '8889',
+        'PORT': '3306',
         'DEFAULT_CHARSET': 'utf-8'
     }
 }
