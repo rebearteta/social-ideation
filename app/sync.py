@@ -317,10 +317,12 @@ def publish_idea_sn(idea, sn_app, mode=None):
     cam_hashtag = campaign.hashtag
     # TODO: New text should be bounded by the social network's text length restriction
     if idea.is_new:
+        print("New Idea\n")
         title_utf8 = convert_to_utf8_str(idea.title)
         text_to_sn = template_idea_sn.format(title_utf8, idea.positive_votes,
                                              text_uf8, cam_hashtag.lower(), platform_name_utf8, idea.url)
         if sn_app.community.type == 'page':
+            #pass
             return _do_publish_idea_sn(sn_app, idea, text_to_sn, mode)
         else:
             if not _user_can_publish(idea, author_name_utf8, sn_app, 'idea'):
@@ -336,6 +338,7 @@ def publish_idea_sn(idea, sn_app, mode=None):
                 # From now, let's don't include the attachment
                 app_user = SocialNetworkAppUser.objects.get(email=idea.author.email)
                 return _do_publish_idea_sn(sn_app, idea, text_to_sn, mode, app_user)
+                #pass
     elif idea.has_changed:
         title_utf8 = convert_to_utf8_str(idea.title)
         text_to_sn = template_idea_sn.format(title_utf8, idea.positive_votes,
@@ -1217,6 +1220,7 @@ def cud_initiative_votes(platform, initiative):
     # Fetch initiative's votes
     connector = platform.connector
     url_cb = get_url_cb(connector, 'get_votes_ideas_cb')
+    print ("<<<<<<<<<<<<< URL CB =" + str(url_cb))
     url = build_request_url(url_cb.url, url_cb.callback, {'initiative_id': initiative.external_id})
     resp = do_request(connector, url, url_cb.callback.method)
     votes = get_json_or_error(connector.name, url_cb.callback, resp)

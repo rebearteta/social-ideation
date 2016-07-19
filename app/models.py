@@ -1,5 +1,5 @@
 import connectors.models
-
+import choices
 from django.db import models
 
 
@@ -13,6 +13,10 @@ class SocialNetworkAppUser(models.Model):
     access_token_exp = models.DateTimeField(editable=False)
     read_permissions = models.BooleanField(default=False, editable=False)
     write_permissions = models.BooleanField(default=False, editable=False)
+    #new_attributes
+    #age = models.CharField(max_length=20, choices=choices.GRUPOS_ETARIOS)
+    #city = models.CharField(max_length=20, choices=choices.CIUDADES)
+    #sex = models.CharField(max_length=10, choices=choices.SEXOS) 
 
     def __unicode__(self):
         if self.name:
@@ -41,7 +45,7 @@ class SocialNetworkApp(models.Model):
     connector = models.ForeignKey(connectors.models.SocialNetworkConnector)
     blocked = models.DateTimeField(null=True, editable=False, default=None)
     app_id = models.CharField(max_length=50)
-    app_secret = models.CharField(max_length=50, null=True, blank=True)
+    app_secret = models.CharField(max_length=50)
     redirect_uri = models.URLField(null=True, blank=True)
     community = models.ForeignKey(SocialNetworkAppCommunity, null=True, blank=True)
     app_access_token = models.CharField(max_length=300, null=True, blank=True)
@@ -106,7 +110,7 @@ class Location(models.Model):
     longitude = models.FloatField(null=True)
 
     def __unicode__(self):
-        return self.county + ', ' + self.city
+        return self.country + ', ' + self.city
 
 
 class Author(models.Model):

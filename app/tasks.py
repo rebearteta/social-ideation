@@ -77,10 +77,10 @@ def pull_data():
                     except Exception as e:
                         _handle_pull_exceptions(initiative, socialnetwork, invalidate_filters, {'exist_sn': True})
                         raise AppError(e)
+                        
         except Exception as e:
             _handle_pull_exceptions(initiative, initiative.platform, invalidate_filters, {'exist_cp': True})
             raise AppError(e)
-
 
 def push_data():
     batch_req_ideas = {}
@@ -117,6 +117,7 @@ def push_data():
                 logger.warning('Error when trying to publish the idea with the id={} on the consultation platforms.'
                                .format(idea.id))
             raise AppError(e)
+
     # Push comments to consultation platforms and social networks
     logger.info('Pushing comments to social networks and consultation platforms')
     existing_comments = Comment.objects.filter(Q(exist_sn=True, sn_id__isnull=False) |
@@ -148,8 +149,7 @@ def push_data():
                 logger.warning('Error when trying to publish the comment with the id={} on the consultation platforms.'
                                .format(comment.id))
             raise AppError(e)
-
-
+            
 def delete_data():
     # Delete comments that don't exist anymore in their original social networks or consultation platforms
     logger.info('Checking whether exists comments that do not exist anymore')

@@ -17,6 +17,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.utils import timezone
 from django.utils.translation import activate, ugettext as _
 
+from .forms import SignInForm
 
 logger = logging.getLogger(__name__)
 
@@ -224,9 +225,53 @@ def index(request):
         activate(language_to_render)
 
     context = get_initiative_info()
-
+    form = SignInForm()
+    context['form'] = form
     return render(request, 'app/index.html', context)
 
+def register(request):
+    language_to_render = None
+
+    browser_language_code = request.META.get('HTTP_ACCEPT_LANGUAGE', None)
+
+    if browser_language_code:
+        languages = [language for language in browser_language_code.split(',') if
+                     '=' not in language]
+        for language in languages:
+            language_code = language.split('-')[0]
+            if is_supported_language(language_code):
+                language_to_render = language_code
+                break
+
+    if not language_to_render:
+        activate('en')
+    else:
+        activate(language_to_render)
+
+    context = get_initiative_info()
+    form = SignInForm()
+    context['form'] = form
+    return render(request, 'app/register.html', context)
+
+
+def process_login(request):
+    # return HttpResponse('It works')
+    # if this is a POST request we need to process the form data
+    if request.method == 'POST':
+        # create a form instance and populate it with data from the request:
+        form = SignInForm(request.POST)
+        # check whether it's valid:
+        if form.is_valid():
+            # process the data in form.cleaned_data as required
+            # ...
+            # redirect to a new URL:
+            return HttpResponse('Formulario completado')
+        else:
+            return HttpResponse('Datos incorrectos')
+    else:
+        return HttpResponseRedirect('/')
+
+    # if a GET (or any other method) we'll create a blank form
 
 def _get_initiative_fb_app(initiative_url):
     initiative = Initiative.objects.get(url=initiative_url)
