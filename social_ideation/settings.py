@@ -1,5 +1,4 @@
 from datetime import timedelta
-
 # Celery settings
 BROKER_URL = 'amqp://guest:guest@localhost//'
 CELERY_RESULT_BACKEND = 'amqp'
@@ -13,7 +12,7 @@ CELERY_SEND_TASK_ERROR_EMAILS = True
 CELERYBEAT_SCHEDULE = {
     'sync-every-5-minutes': {
         'task': 'app.tasks.synchronize_content',
-        'schedule': timedelta(minutes=5)
+        'schedule': timedelta(minutes=2)
     },
 }
 
@@ -120,10 +119,8 @@ USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.8/howto/static-files/
-
+# STATIC_ROOT = '/var/www/html/social_ideation'
 STATIC_URL = '/static/'
-
-
 STATICFILES_DIRS = (
     os.path.join(BASE_DIR, 'static'),
 )

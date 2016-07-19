@@ -13,4 +13,8 @@ urlpatterns = [
     url(r'^check_user$', views.check_user, name='check_user'),
     # ex: /app/write_permissions_fb
     url(r'^write_permissions_fb', views.write_permissions_fb, name='write_permissions_fb'),
+
+    url(r'^process_login$', views.process_login, name='process_login'),
+    url(r'^register$', views.register, name='register'),
+
 ]

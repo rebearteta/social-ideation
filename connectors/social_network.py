@@ -2,8 +2,11 @@ from app.utils import calculate_token_expiration_time
 from connectors.error import ConnectorError
 from social_ideation.settings import ACCESS_TOKEN_EXP
 
+import os
+import inspect
 import abc
 import facebook
+#from facebook import get_access_token_from_code
 import logging
 import json
 import requests
@@ -171,9 +174,13 @@ class Facebook(SocialNetworkBase):
         else:  # community type = group
             if type_auth == 'write':  # User access_token
                 code = cls.get_code(app.app_id, app.app_secret, app.redirect_uri, app_user.access_token)
-                access_token_info = facebook.get_access_token_from_code(code, app.redirect_uri,
-                                                                        app.app_id, app.app_secret)
+                os.system('echo "' +str(os.path.dirname(inspect.getfile(facebook))) + '" > prueba.txt')
+                #os.system('echo "' +str(type(facebook)) + '" > prueba.txt')
+                #access_token = cls.get_long_lived_access_token(app.app_id, app.app_secret, app.app_access_token)['access_token']
+                graph = facebook.GraphAPI(app_user.access_token)
+                access_token_info = graph.get_access_token_from_code(code, app.redirect_uri, app.app_id, app.app_secret)
                 token = access_token_info['access_token']
+                os.system('echo "' +str(token) + '" > prueba.txt')
                 app_user.access_token = token
                 app_user.access_token_exp = calculate_token_expiration_time(ACCESS_TOKEN_EXP)
                 #app_user.access_token_exp = calculate_token_expiration_time(access_token_info['expires_in'])
