@@ -5,7 +5,7 @@ import hmac
 import json
 import traceback
 
-from app.models import SocialNetworkApp, SocialNetworkAppUser, Initiative
+from app.models import SocialNetworkApp, SocialNetworkAppUser, Initiative, Idea, Campaign
 from app.sync import save_sn_post, publish_idea_cp, save_sn_comment, publish_comment_cp, save_sn_vote, \
                      delete_post, delete_comment, delete_vote, is_user_community_member
 from app.utils import get_timezone_aware_datetime, calculate_token_expiration_time
@@ -201,6 +201,17 @@ def get_initiative_info():
     return {'initiative_name': initiative.name, 'initiative_url': initiative.url,
             'fb_group_url': initiative.social_network.all()[0].community.url}
 
+def _get_recent_ideas ():
+    recent_ideas = Idea.objects.order_by('-datetime')[:3]
+    return recent_ideas
+
+def _get_top_ideas ():
+    top_ideas = Idea.objects.order_by('-positive_votes')[:3]
+    return top_ideas
+
+def _get_campaigns ():
+    campaigns = Campaign.objects.all() #Hardcoded for the first initiative
+    return campaigns
 
 def index(request):
     # Detect the default language to show the page
@@ -227,6 +238,9 @@ def index(request):
     context = get_initiative_info()
     form = SignInForm()
     context['form'] = form
+    context['top'] = _get_top_ideas()
+    context['recent'] = _get_recent_ideas()
+    context['campaigns'] = _get_campaigns()
     return render(request, 'app/index.html', context)
 
 def register(request):
@@ -253,7 +267,7 @@ def register(request):
     context['form'] = form
     return render(request, 'app/register.html', context)
 
-
+# NOT USED. PROBABLY IT'S GONNA BE DELETED
 def process_login(request):
     # return HttpResponse('It works')
     # if this is a POST request we need to process the form data
@@ -282,7 +296,7 @@ def _get_initiative_fb_app(initiative_url):
     return None
 
 
-def _save_user(user_id, access_token, initiative_url, type_permission):
+def _save_user(user_id, access_token, initiative_url, type_permission, demo_data):
     fb_app = _get_initiative_fb_app(initiative_url)
     if fb_app:
         ret_token = Facebook.get_long_lived_access_token(fb_app.app_id, fb_app.app_secret,
@@ -297,6 +311,7 @@ def _save_user(user_id, access_token, initiative_url, type_permission):
                 user.read_permissions = True
             user.save()
         except SocialNetworkAppUser.DoesNotExist:
+            #Creamos un ParticipaUser con demo_data. => creamos el snapp user normal => asociamos el snapp al participauser
             user_fb = Facebook.get_info_user(fb_app, user_id, access_token)
             new_app_user = {'email': user_fb['email'].lower(), 'snapp': fb_app, 'access_token': ret_token['access_token'],
                             'access_token_exp': calculate_token_expiration_time(ret_token['expiration']),
@@ -316,15 +331,75 @@ def _save_user(user_id, access_token, initiative_url, type_permission):
                        'the initiative {}'.format(initiative_url))
 
 
+def _get_demo_data(request):
+    name = request.GET.get('name')
+    age = request.GET.get('age')
+    sex = request.GET.get('sex')
+    email = request.GET.get('email')
+    city = request.GET.get('city')
+    demo_data = {'name':name, 'age':age, 'sex':sex, 'email':email, 'city':city}
+    if (name!=None and email!=None):
+    	return demo_data
+    else:
+	return None
+
+
 def login_fb(request):
     access_token = request.GET.get('access_token')
     user_id = request.GET.get('user_id')
     initiatiative_url = request.GET.get('initiative_url')
-    _save_user(user_id, access_token, initiatiative_url, 'read')
-    return redirect('/')
+    demo_data = _get_demo_data(request)
+    _save_user(user_id, access_token, initiatiative_url, 'read', demo_data)
+    return redirect('/app/register?wr_perm=True')
 
+"""
+def _save_IS_user(initiative_url, demo_data):
+    #Si todos los campos estan correctos creo un ParticipaUser
+    #No le asocio Sanppuser porque se registro con IS
+    #Creo un cookie con su id y su correo tal vez para usarla en check_participa_user?
+    try:
+        user = IdeaScaleUser.objects.get(external_id=use)
+        user.access_token = ret_token['access_token']
+        user.access_token_exp = calculate_token_expiration_time(ret_token['expiration'])
+            if type_permission == 'write':
+                user.write_permissions = True
+            else:
+                user.read_permissions = True
+            user.save()
+        except SocialNetworkAppUser.DoesNotExist:
+            user_fb = Facebook.get_info_user(fb_app, user_id, access_token)
+            new_app_user = {'email': user_fb['email'].lower(), 'snapp': fb_app, 'access_token': ret_token['access_token'],
+                            'access_token_exp': calculate_token_expiration_time(ret_token['expiration']),
+                            'external_id': user_id}
+            #new demographic data added
+            #if demo_data:
+            #    new_app_user.update({'age':demo_data['age'], 'city':demo_data['city'], 'sex':demo_data['sex']})
+            if type_permission == 'write':
+                new_app_user.update({'write_permissions': True})
+            else:
+                new_app_user.update({'read_permissions': True})
+            if 'name' in user_fb.keys():
+                new_app_user.update({'name': user_fb['name']})
+            if 'url' in user_fb.keys():
+                new_app_user.update({'url': user_fb['url']})
+            user = SocialNetworkAppUser(**new_app_user)
+            user.save()
+    else:
+        logger.warning('It could not be found the facebook app used to execute '
+                       'the initiative {}'.format(initiative_url))
 
-def check_user(request):
+"""
+def login_IS(request):
+    initiative_url = request.GET.get('initiative_url')
+    demo_data = _get_demo_data(request)
+    #_save_IS_user() ## After retrieving the data a new IS_user object should be created and saved
+    # After the new user is created in our DB a register-confirmation mail must be sent through the API
+    # a session value (cookie) should be set here probably to recognize this user.
+    
+    #return redirect(initiative_url)
+    return HttpResponse('We have sent you a confirmation mail. Please verify to join the IdeaScale Initiative ' + str(initiative_url) + str(demo_data)) #just for debugging
+
+def check_user(request): #puede que le agregue otro parametro que me diga si el id es de FB o de IS
     user_id = request.GET.get('user_id')
     try:
         msg_logged = _('Congrats!, You are already logged into') + ' <b>Social Ideation App</b>. '
@@ -359,5 +434,5 @@ def write_permissions_fb(request):
     access_token = request.GET.get('access_token')
     user_id = request.GET.get('user_id')
     initiatiative_url = request.GET.get('initiative_url')
-    _save_user(user_id, access_token, initiatiative_url, 'write')
+    _save_user(user_id, access_token, initiatiative_url, 'write', None)
     return redirect('/')

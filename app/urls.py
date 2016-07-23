@@ -16,5 +16,7 @@ urlpatterns = [
 
     url(r'^process_login$', views.process_login, name='process_login'),
     url(r'^register$', views.register, name='register'),
+    url(r'^login_IS$', views.login_IS, name='login_IS'),
+
 
 ]

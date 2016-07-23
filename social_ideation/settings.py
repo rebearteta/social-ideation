@@ -83,8 +83,20 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'social_ideation.wsgi.application'
 
+#For email
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_USE_TLS = True
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_HOST_USER = 'rebkartt@gmail.com'
+EMAIL_HOST_PASSWORD = '***REMOVED***'
+EMAIL_PORT = 587
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+
+
 ADMINS = (
-    ('Jorge Saldivar', 'jorgesaldivar@gmail.com'),
+#    ('Jorge Saldivar', 'jorgesaldivar@gmail.com'),
+    ('Rebeca Arteta', 'rebkartt@gmail.com'),
+    ('Marcelo Alcaraz', 'marce.mmad@gmail.com')
 )
 
 # Database

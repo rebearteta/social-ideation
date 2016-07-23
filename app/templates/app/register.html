@@ -17,17 +17,31 @@
         }
     </style>
     <script type="text/javascript">
+        function getQueryVariable(variable) {
+           var query = window.location.search.substring(1);
+           var vars = query.split("&");
+           for (var i=0;i<vars.length;i++) {
+               var pair = vars[i].split("=");
+               if (pair[0] == variable) {
+                return pair[1];
+               }
+           } 
+           //alert('Query Variable ' + variable + ' not found');
+           return "False";
+      }
+
         function prepareRegister(initiative_url){
-            startConnect(initiative_url);
             //document.getElementById('RegisterForm').submit();
-            var name = document.getElementById('name').value;
-            var age = document.getElementById('age').value;
-            var sex = document.getElementById('sex').value;
-            var mail = document.getElementById('mail').value
-            var city = document.getElementById('city').value
+            var name = document.getElementById('id_name').value;
+            var age = document.getElementById('id_age').value;
+            var sex = document.getElementById('id_sex').value;
+            var email = document.getElementById('id_email').value;
+            var city = document.getElementById('id_city').value;
+            console.log(email);
+            startConnect(initiative_url, name, age, sex, email, city);
 
         };
-        function startConnect(initiative_url){
+        function startConnect(initiative_url, name, age, sex, email, city){
             FB.login(function(response) {
                 if (response.authResponse) {
                 var next_url = window.location.origin +  window.location.pathname;
@@ -37,19 +51,44 @@
                             '&expires=' + response.authResponse.expiresIn +
                             '&signed_request=' + response.authResponse.signedRequest +
                             '&user_id=' + response.authResponse.userID +
-                            '&initiative_url=' + initiative_url;
+                            '&initiative_url=' + initiative_url +
+                            '&name=' + name + 
+                            '&age=' + age +
+                            '&sex=' + sex +
+                            '&email=' + email +
+                            '&city=' + city;
                 } else {
                     checkStatusCallback(response);
                 }
             }, {scope: 'public_profile,email,user_friends', show_faces :true})
         };
+        function IS_login(initiative_url){
+            var name = document.getElementById('id_name').value;
+            var age = document.getElementById('id_age').value;
+            var sex = document.getElementById('id_sex').value;
+            var email = document.getElementById('id_email').value;
+            var city = document.getElementById('id_city').value;
+
+            var next_url = window.location.origin +  window.location.pathname;
+            next_url = next_url.substring(0,next_url.lastIndexOf("/"));    
+            window.location = next_url + '/login_IS' +
+                            '?initiative_url=' + initiative_url +
+                            '&name=' + name + 
+                            '&age=' + age +
+                            '&sex=' + sex +
+                            '&email=' + email +
+                            '&city=' + city;
+        };
+
         function askWritingPermissions(initiative_url) {
             $('#writingPermissionModal').modal('hide');
             FB.login(function(response) {
                 console.log(initiative_url);
                 if (response.authResponse) {
-                    var next_url = window.location.origin +  window.location.pathname;
-                    window.location = next_url + 'app/write_permissions_fb' +
+                   // var next_url = window.location.origin +  window.location.pathname;
+                   var next_url = window.location.origin +  window.location.pathname;
+                   next_url = next_url.substring(0,next_url.lastIndexOf("/")); 
+                    window.location = next_url + '/write_permissions_fb' +
                             '?access_token=' + response.authResponse.accessToken +
                             '&expires=' + response.authResponse.expiresIn +
                             '&signed_request=' + response.authResponse.signedRequest +
@@ -63,8 +102,9 @@
         function checkStatusCallback(response) {
             if (response.status === 'connected') {
                 var next_url = window.location.origin +  window.location.pathname;
+                next_url = next_url.substring(0,next_url.lastIndexOf("/"));   
                 $.ajax({
-                    url: next_url + 'app/check_user' + '?user_id=' + response.authResponse.userID,
+                    url: next_url + '/check_user' + '?user_id=' + response.authResponse.userID,
                     success: function(result) {
                         if (result) {
                             document.getElementById('status').className = 'alert alert-info';
@@ -123,18 +163,41 @@
             {% trans "Make sure to perform ALL of the 3 steps to correctly install the app" %}
       </div>
 
-      <form action='process_login' method='post' id='RegisterForm'>
-             {% csrf_token %} 
-             {{ form }}
+<a class="btn btn-primary" href="{{ initiative_url }}" role="button">
+                    <span class="glyphicon glyphicon-home" aria-hidden="true"></span>
+                   Ir a IdeaScale
+                </a>
+<a class="btn btn-primary" href="{{ fb_group_url }}" role="button">
+                    <span class="glyphicon glyphicon-home" aria-hidden="true"></span>
+                   Ir al Grupo en FB
+                </a>
+
+
+      <form class="form-horizontal" action='process_login' method='post' id='RegisterForm'>
+            {% csrf_token %}
+                    <legend>
+                        <strong> Formulario de Registro </strong>
+                    </legend>
+                    {% for field in form %}
+                            <div class="form-group">
+                               <label class="col-xs-3">{{ field.label }}</label>  
+                               <div class="col-xs-9" style="width: 60%">
+                                    {{ field }} 
+                               </div>
+                           </div>
+                    {% endfor %}
+                    <!--  {{ form }} -->
+             
+             <br><br>
              <a class="btn btn-success" href="javascript:;" role="button" onclick="prepareRegister('{{ initiative_url }}'); return false;">
                   <span class="glyphicon glyphicon-log-in" aria-hidden="true"></span>
                   &nbsp;&nbsp;{% trans "Log in con Facebook" %}
               </a>
-             <a class="btn btn-warning" href="javascript:;" role="button" onclick="startConnect('{{ initiative_url }}'); return false;">
+             <a class="btn btn-warning" href="javascript:;" role="button" onclick="IS_login('{{ initiative_url }}'); return false;">
                   <span class="glyphicon glyphicon-pencil" aria-hidden="true"></span>
                   &nbsp;&nbsp;{% trans "Log in con IdeaScale" %}
               </a>
-             <input type="submit" value="Submit"/>
+             <!--<input type="submit" value="Submit"/>-->
       </form> 
 
 
@@ -159,28 +222,6 @@
                 <br><br>
             </div>
           -->
-            <div class="col-md-4">
-             <!-- <p align="center">
-                <img src="/static/img/login.png" alt="App Icon" height="100" width="90">
-              </p>
-              <h2>{% trans "Step 2" %}</h2>
-              <p>{% trans "Log into <b>Social Ideation App</b> so the ideas and comments you post on the" %}
-                 <b><a href="{{ fb_group_url }}" target="_blank">{% trans "group's" %}</a></b>
-                 {% trans "timeline will be automatically replicated on the page of the initiative" %}
-                 <b><a href="{{ initiative_url }}" target="_blank">{{ initiative_name }}</a></b> {% trans "on IdeaScale" %}
-                 {% trans "(see the" %} <b><a href="#scenario-1">{% trans "scenario" %} 1</a></b> {%trans "to better understand how it works)" %}
-              </p> -->
-              <a class="btn btn-success" href="javascript:;" role="button" onclick="startConnect('{{ initiative_url }}'); return false;">
-                  <span class="glyphicon glyphicon-log-in" aria-hidden="true"></span>
-                  &nbsp;&nbsp;{% trans "Log in con Facebook" %}
-              </a>
-             <a class="btn btn-warning" href="javascript:;" role="button" onclick="startConnect('{{ initiative_url }}'); return false;">
-                  <span class="glyphicon glyphicon-pencil" aria-hidden="true"></span>
-                  &nbsp;&nbsp;{% trans "Log in con IdeaScale" %}
-              </a>
-
-              <br><br>
-           </div>
 
          <!--
             <div class="col-md-4">
@@ -307,6 +348,13 @@
         FB.getLoginStatus(function(response) {
             checkStatusCallback(response);
         });
+        var wr_perm = getQueryVariable("wr_perm");
+        if (wr_perm == 'True'){
+            console.log("SI VOY A PEDIR WR_PERM WOHOOOOO");
+            askWritingPermissions('{{ initiative_url }}');
+        } else {
+           console.log("no pido wr perm");
+        }
     };
 
     (function() {
