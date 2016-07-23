@@ -14,9 +14,9 @@ class SocialNetworkAppUser(models.Model):
     read_permissions = models.BooleanField(default=False, editable=False)
     write_permissions = models.BooleanField(default=False, editable=False)
     #new_attributes
-    #age = models.CharField(max_length=20, choices=choices.GRUPOS_ETARIOS)
-    #city = models.CharField(max_length=20, choices=choices.CIUDADES)
-    #sex = models.CharField(max_length=10, choices=choices.SEXOS) 
+    #age = models.CharField(max_length=20, choices=choices.GRUPOS_ETARIOS, blank=True)
+    #city = models.CharField(max_length=20, choices=choices.CIUDADES, blank=True)
+    #sex = models.CharField(max_length=10, choices=choices.SEXOS, blank=True) 
 
     def __unicode__(self):
         if self.name:
@@ -24,6 +24,18 @@ class SocialNetworkAppUser(models.Model):
         else:
             return self.external_id
 
+"""
+class IdeaScaleUser(models.Model)
+    #snapp_user =  models.OneToOneField(SocialNetworkAppUser) #An user could be a snapp_user if he/she logs in with FB
+    #ideascale_id = models.CharField(max_length=50, blank=True) #a blank external_id means he hasn't joined the initiatitive 
+    #valid_user = models.BooleanField(default=False)
+    #name = models.CharField(max_length=100, null=True)
+    #email = models.EmailField()
+    #new_attributes
+    #age = models.CharField(max_length=20, choices=choices.GRUPOS_ETARIOS)
+    #city = models.CharField(max_length=20, choices=choices.CIUDADES)
+    #sex = models.CharField(max_length=10, choices=choices.SEXOS) 
+"""
 
 class SocialNetworkAppCommunity(models.Model):
     external_id = models.CharField(max_length=50)
