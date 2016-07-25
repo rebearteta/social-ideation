@@ -5,10 +5,11 @@ import hmac
 import json
 import traceback
 
-from app.models import SocialNetworkApp, SocialNetworkAppUser, Initiative, Idea, Campaign
+from app.models import SocialNetworkApp, SocialNetworkAppUser, Initiative, Idea, Campaign, ParticipaUser
 from app.sync import save_sn_post, publish_idea_cp, save_sn_comment, publish_comment_cp, save_sn_vote, \
                      delete_post, delete_comment, delete_vote, is_user_community_member
-from app.utils import get_timezone_aware_datetime, calculate_token_expiration_time
+from app.utils import get_timezone_aware_datetime, calculate_token_expiration_time, get_url_cb, \
+                      build_request_url, build_request_body, do_request, get_json_or_error
 from connectors.social_network import Facebook
 from django.conf import settings
 from django.http import HttpResponse, HttpResponseForbidden
@@ -243,6 +244,36 @@ def index(request):
     context['campaigns'] = _get_campaigns()
     return render(request, 'app/index.html', context)
 
+def index_v1(request):
+    # Detect the default language to show the page
+    # If the preferred language is supported, the page will be presented in that language
+    # Otherwise english will be chosen
+    language_to_render = None
+
+    browser_language_code = request.META.get('HTTP_ACCEPT_LANGUAGE', None)
+
+    if browser_language_code:
+        languages = [language for language in browser_language_code.split(',') if
+                     '=' not in language]
+        for language in languages:
+            language_code = language.split('-')[0]
+            if is_supported_language(language_code):
+                language_to_render = language_code
+                break
+
+    if not language_to_render:
+        activate('en')
+    else:
+        activate(language_to_render)
+
+    context = get_initiative_info()
+    form = SignInForm()
+    context['form'] = form
+    context['top'] = _get_top_ideas()
+    context['recent'] = _get_recent_ideas()
+    context['campaigns'] = _get_campaigns()
+    return render(request, 'app/index-v1.html', context)
+
 def register(request):
     language_to_render = None
 
@@ -266,6 +297,31 @@ def register(request):
     form = SignInForm()
     context['form'] = form
     return render(request, 'app/register.html', context)
+
+def register_v1(request):
+    language_to_render = None
+
+    browser_language_code = request.META.get('HTTP_ACCEPT_LANGUAGE', None)
+
+    if browser_language_code:
+        languages = [language for language in browser_language_code.split(',') if
+                     '=' not in language]
+        for language in languages:
+            language_code = language.split('-')[0]
+            if is_supported_language(language_code):
+                language_to_render = language_code
+                break
+
+    if not language_to_render:
+        activate('en')
+    else:
+        activate(language_to_render)
+
+    context = get_initiative_info()
+    form = SignInForm()
+    context['form'] = form
+    return render(request, 'app/register-v1.html', context)
+
 
 # NOT USED. PROBABLY IT'S GONNA BE DELETED
 def process_login(request):
@@ -311,11 +367,17 @@ def _save_user(user_id, access_token, initiative_url, type_permission, demo_data
                 user.read_permissions = True
             user.save()
         except SocialNetworkAppUser.DoesNotExist:
-            #Creamos un ParticipaUser con demo_data. => creamos el snapp user normal => asociamos el snapp al participauser
+            #############################################################################
+            try:
+                participa_user = ParticipaUser.objects.get(email=demo_data['email'])[0]
+            except ParticipaUser.DoesNotExist:
+                participa_user = ParticipaUser(**demo_data)
+                participa_user.save()
+            #############################################################################
             user_fb = Facebook.get_info_user(fb_app, user_id, access_token)
             new_app_user = {'email': user_fb['email'].lower(), 'snapp': fb_app, 'access_token': ret_token['access_token'],
                             'access_token_exp': calculate_token_expiration_time(ret_token['expiration']),
-                            'external_id': user_id}
+                            'external_id': user_id, 'participa_user' : participa_user}
             if type_permission == 'write':
                 new_app_user.update({'write_permissions': True})
             else:
@@ -352,52 +414,42 @@ def login_fb(request):
     _save_user(user_id, access_token, initiatiative_url, 'read', demo_data)
     return redirect('/app/register?wr_perm=True')
 
-"""
-def _save_IS_user(initiative_url, demo_data):
-    #Si todos los campos estan correctos creo un ParticipaUser
-    #No le asocio Sanppuser porque se registro con IS
-    #Creo un cookie con su id y su correo tal vez para usarla en check_participa_user?
-    try:
-        user = IdeaScaleUser.objects.get(external_id=use)
-        user.access_token = ret_token['access_token']
-        user.access_token_exp = calculate_token_expiration_time(ret_token['expiration'])
-            if type_permission == 'write':
-                user.write_permissions = True
-            else:
-                user.read_permissions = True
-            user.save()
-        except SocialNetworkAppUser.DoesNotExist:
-            user_fb = Facebook.get_info_user(fb_app, user_id, access_token)
-            new_app_user = {'email': user_fb['email'].lower(), 'snapp': fb_app, 'access_token': ret_token['access_token'],
-                            'access_token_exp': calculate_token_expiration_time(ret_token['expiration']),
-                            'external_id': user_id}
-            #new demographic data added
-            #if demo_data:
-            #    new_app_user.update({'age':demo_data['age'], 'city':demo_data['city'], 'sex':demo_data['sex']})
-            if type_permission == 'write':
-                new_app_user.update({'write_permissions': True})
-            else:
-                new_app_user.update({'read_permissions': True})
-            if 'name' in user_fb.keys():
-                new_app_user.update({'name': user_fb['name']})
-            if 'url' in user_fb.keys():
-                new_app_user.update({'url': user_fb['url']})
-            user = SocialNetworkAppUser(**new_app_user)
-            user.save()
-    else:
-        logger.warning('It could not be found the facebook app used to execute '
-                       'the initiative {}'.format(initiative_url))
+def _create_IS_user (initiative_url, demo_data):
+    initiative = Initiative.objects.get(url=initiative_url)
+    cplatform = initiative.platform
+    connector = cplatform.connector
+    url_cb = get_url_cb(connector, 'create_user_cb')
+    url = build_request_url(url_cb.url, url_cb.callback, {'initiative_id': initiative.external_id})
+    params = {'name': demo_data['name'], 'email': demo_data['email']}
+    body_param = build_request_body(connector, url_cb.callback, params)
+    resp = do_request(connector, url, url_cb.callback.method, body_param)
+    user = get_json_or_error(connector.name, url_cb.callback, resp)
+    return user
 
-"""
+def _save_IS_user(initiative_url, demo_data):
+    try:
+        participa_user = ParticipaUser.objects.get(email=demo_data['email'])[0]
+        if participa_user['valid_user'] == False:
+            user = _create_IS_user(initiative_url, demo_data)
+            participa_user['ideascale_id'] = user['id']
+            participa_user.save()
+    except ParticipaUser.DoesNotExist:    
+        user = _create_IS_user(initiative_url, demo_data)
+        demo_data['ideascale_id'] = user['id']
+        participa_user = ParticipaUser(**demo_data)
+        participa_user.save()
+        #aca rebe. tenes ya el initiative_url como parametro de esta func. y el mail esta en demo_data['email']
+        #call ideascale api to add member (email) to the initiative
+
 def login_IS(request):
     initiative_url = request.GET.get('initiative_url')
     demo_data = _get_demo_data(request)
-    #_save_IS_user() ## After retrieving the data a new IS_user object should be created and saved
+    _save_IS_user(initiative_url, demo_data) ## After retrieving the data a new IS_user object should be created and saved
     # After the new user is created in our DB a register-confirmation mail must be sent through the API
     # a session value (cookie) should be set here probably to recognize this user.
     
     #return redirect(initiative_url)
-    return HttpResponse('We have sent you a confirmation mail. Please verify to join the IdeaScale Initiative ' + str(initiative_url) + str(demo_data)) #just for debugging
+    return HttpResponse('We have sent you a confirmation mail. Please verify to join the IdeaScale Initiative ' + str(initiative_url)) #just for debugging
 
 def check_user(request): #puede que le agregue otro parametro que me diga si el id es de FB o de IS
     user_id = request.GET.get('user_id')

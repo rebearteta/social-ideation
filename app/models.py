@@ -2,6 +2,19 @@ import connectors.models
 import choices
 from django.db import models
 
+class ParticipaUser(models.Model):
+    #snapp_user =  models.OneToOneField(SocialNetworkAppUser) #An user could be a snapp_user if he/she logs in with FB
+#    ideascale_id = models.CharField(max_length=50, blank=True) #a blank external_id means he hasn't joined the initiatitive 
+    ideascale_id = models.IntegerField(blank=True)
+    valid_user = models.BooleanField(default=False)
+    name = models.CharField(max_length=100, null=True)
+    email = models.EmailField()
+    #new_attributes
+    age = models.CharField(max_length=20, choices=choices.GRUPOS_ETARIOS)
+    city = models.CharField(max_length=20, choices=choices.CIUDADES)
+    sex = models.CharField(max_length=10, choices=choices.SEXOS) 
+    def __str__(self):
+        return self.name
 
 class SocialNetworkAppUser(models.Model):
     external_id = models.CharField(max_length=50)
@@ -17,25 +30,13 @@ class SocialNetworkAppUser(models.Model):
     #age = models.CharField(max_length=20, choices=choices.GRUPOS_ETARIOS, blank=True)
     #city = models.CharField(max_length=20, choices=choices.CIUDADES, blank=True)
     #sex = models.CharField(max_length=10, choices=choices.SEXOS, blank=True) 
-
+    participa_user = models.OneToOneField(ParticipaUser, null=True, blank=True)
+    
     def __unicode__(self):
         if self.name:
             return self.name
         else:
             return self.external_id
-
-"""
-class IdeaScaleUser(models.Model)
-    #snapp_user =  models.OneToOneField(SocialNetworkAppUser) #An user could be a snapp_user if he/she logs in with FB
-    #ideascale_id = models.CharField(max_length=50, blank=True) #a blank external_id means he hasn't joined the initiatitive 
-    #valid_user = models.BooleanField(default=False)
-    #name = models.CharField(max_length=100, null=True)
-    #email = models.EmailField()
-    #new_attributes
-    #age = models.CharField(max_length=20, choices=choices.GRUPOS_ETARIOS)
-    #city = models.CharField(max_length=20, choices=choices.CIUDADES)
-    #sex = models.CharField(max_length=10, choices=choices.SEXOS) 
-"""
 
 class SocialNetworkAppCommunity(models.Model):
     external_id = models.CharField(max_length=50)
@@ -57,7 +58,8 @@ class SocialNetworkApp(models.Model):
     connector = models.ForeignKey(connectors.models.SocialNetworkConnector)
     blocked = models.DateTimeField(null=True, editable=False, default=None)
     app_id = models.CharField(max_length=50)
-    app_secret = models.CharField(max_length=50)
+    app_secret = models.CharField(max_length=50, null=True, blank=True)
+    #app_secret = models.CharField(max_length=50)
     redirect_uri = models.URLField(null=True, blank=True)
     community = models.ForeignKey(SocialNetworkAppCommunity, null=True, blank=True)
     app_access_token = models.CharField(max_length=300, null=True, blank=True)
