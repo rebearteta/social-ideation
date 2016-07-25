@@ -3,7 +3,7 @@ import os
 
 from django.contrib import admin, messages
 from app.models import ConsultationPlatform, Initiative, Campaign, SocialNetworkApp, Idea, Comment, Vote, \
-                       SocialNetworkAppCommunity, SocialNetworkAppUser
+                       SocialNetworkAppCommunity, SocialNetworkAppUser, ParticipaUser
 from app.tasks import test_function
 from app.error import AppError
 from app.utils import call_social_network_api, calculate_token_expiration_time
@@ -315,3 +315,4 @@ admin.site.register(Comment, CommentAdmin)
 admin.site.register(Vote, VoteAdmin)
 admin.site.register(SocialNetworkAppCommunity, SocialNetworkAdminCommunity)
 admin.site.register(SocialNetworkAppUser, SocialNetworkAppUserAdmin)
+admin.site.register(ParticipaUser)
