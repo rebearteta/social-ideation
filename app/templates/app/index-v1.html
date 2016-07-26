@@ -91,15 +91,20 @@
                   <div class="row">
                       {% for idea in top %}
                          <div class="4u 12u(mobile)">
-                             <article class="box style2">
+                             <article class="box style2" style="height: 350px">
+                                  <div>
+                                     <h3><a href={{idea.url}}  style="color: #3ba8d3;">{{idea.title}}</a></h3>
                                      <p style="text-align: left;">
-                                        <strong> Por: </strong> {{idea.author}} <br>
-                                        <strong> Fecha: </strong> {{idea.datetime}} <br>
-                                        <strong> Título: </strong> {{idea.title}} <br> 
-                                        <!-- <strong> Temática: </strong>  -->
+                                        <strong> {{idea.author}} </strong>  <br>
+                                        {{idea.text}}
                                      </p>
-                                     <p> {{idea.text}} </p>
-                                     <a href={{idea.url}} class="button" target="_blank">Participar</a>
+                                  </div>
+                                  <footer>
+                                     <span style="color: #3ba8d3;">
+                                          <i class="fa fa-caret-up"> {{idea.positive_votes}} &nbsp; &nbsp; </i>
+                                          <i class="fa fa-comment"> {{idea.comments}} </i>
+                                     </span>
+                                  </footer>
                              </article>
                          </div>
                       {% endfor %}
@@ -117,18 +122,17 @@
                  <!-- <p>Proin odio consequat  sapien vestibulum consequat lorem dolore feugiat lorem ipsum dolore.</p> -->
               </header>
               <div class="container" style="max-width: none;">			
-                  <div class="row" style="display: table; table-layout: fixed;">
+                  <div class="row">
                       {% for idea in recent %}
-                         <div class="4u 12u(mobile)" style="display: table-cell;">
-                             <article class="box style2">
+                         <div class="4u 12u(mobile)">
+                             <article class="box style2" style="height: 350px">
+                                     <h3><a href={{idea.url}} style="color: #3ba8d3;">{{idea.title}}</a></h3>
                                      <p style="text-align: left;">
-                                        <strong> Por: </strong> {{idea.author}} <br>
-                                        <strong> Fecha: </strong> {{idea.datetime}} <br>
-                                        <strong> Título: </strong>{{idea.title}}  <br> 
-                                        <!-- <strong> Temática: </strong>  -->
+                                        <strong> {{idea.author}} </strong>  <br>
+                                        {{idea.text}}
                                      </p>
-                                     <p> {{idea.text}} </p>
-                                     <a href={{idea.url}} class="button" target="_blank">Participar</a>
+                                     <i class="fa fa-caret-up"  style="color: #3ba8d3;"> {{idea.positive_votes}} &nbsp; &nbsp; </i>              
+                                     <i class="fa fa-comment"  style="color: #3ba8d3;"> {{idea.comments}} </i>
                              </article>
                          </div>
                       {% endfor %}

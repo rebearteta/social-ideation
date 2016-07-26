@@ -14,7 +14,7 @@ class ParticipaUser(models.Model):
     city = models.CharField(max_length=20, choices=choices.CIUDADES)
     sex = models.CharField(max_length=10, choices=choices.SEXOS) 
     def __str__(self):
-        return self.name
+        return self.name + ' - '+ self.email
 
 class SocialNetworkAppUser(models.Model):
     external_id = models.CharField(max_length=50)
