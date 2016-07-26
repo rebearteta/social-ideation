@@ -1092,7 +1092,7 @@
 		-ms-transition: color .2s ease-in-out;
 		transition: color .2s ease-in-out;
 		color: #43B3E0;
-		text-decoration: underline;
+		text-decoration: none;
 	}
 
 		a:hover {
@@ -1198,7 +1198,7 @@
 		border-radius: 8px;
 		border: solid 1px #ddd;
 		background: #fff;
-		color: #bbb;
+		color: #333;
 		box-shadow: inset 0px 2px 3px 1px rgba(0, 0, 0, 0.05), 0px 1px 0px 0px rgba(255, 255, 255, 0.025);
 		width: 100%;
 	}
@@ -2105,3 +2105,42 @@
 				}
 
 	}
+
+
+
+
+
+
+form select {
+  background-image:
+    linear-gradient(45deg, transparent 50%, gray 50%),
+    linear-gradient(135deg, gray 50%, transparent 50%),
+    linear-gradient(to right, #ccc, #ccc);
+  background-position:
+    calc(100% - 20px) calc(1.5em + 2px),
+    calc(100% - 15px) calc(1.5em + 2px),
+    calc(100% - 2.5em) 1em;
+  background-size:
+    5px 5px,
+    5px 5px,
+    1px 1.5em;
+  background-repeat: no-repeat;
+}
+
+form select:focus {
+  background-image:
+    linear-gradient(45deg, #43bff0, transparent 50%),
+    linear-gradient(135deg, transparent 50%, #43bff0),
+    linear-gradient(to right, #ccc, #ccc);
+  background-position:
+    calc(100% - 15px) 1.5em,
+    calc(100% - 20px) 1.5em,
+    calc(100% - 2.5em) 1em;
+  background-size:
+    5px 5px,
+    5px 5px,
+    1px 1.5em;
+  background-repeat: no-repeat;
+  border-color: #43bff0;
+  outline: 0;
+}

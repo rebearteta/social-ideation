@@ -204,10 +204,16 @@ def get_initiative_info():
 
 def _get_recent_ideas ():
     recent_ideas = Idea.objects.order_by('-datetime')[:3]
+    for idea in recent_ideas:
+        if idea.title == '' or idea.title == None:
+            idea.title = ' '.join(idea.text.split()[:5])
     return recent_ideas
 
 def _get_top_ideas ():
     top_ideas = Idea.objects.order_by('-positive_votes')[:3]
+    for idea in top_ideas:
+        if idea.title == '' or idea.title == None:
+            idea.title = ' '.join(idea.text.split()[:5])
     return top_ideas
 
 def _get_campaigns ():
@@ -369,7 +375,7 @@ def _save_user(user_id, access_token, initiative_url, type_permission, demo_data
         except SocialNetworkAppUser.DoesNotExist:
             #############################################################################
             try:
-                participa_user = ParticipaUser.objects.get(email=demo_data['email'])[0]
+                participa_user = ParticipaUser.objects.get(email=demo_data['email'])
             except ParticipaUser.DoesNotExist:
                 participa_user = ParticipaUser(**demo_data)
                 participa_user.save()
@@ -428,10 +434,10 @@ def _create_IS_user (initiative_url, demo_data):
 
 def _save_IS_user(initiative_url, demo_data):
     try:
-        participa_user = ParticipaUser.objects.get(email=demo_data['email'])[0]
-        if participa_user['valid_user'] == False:
+        participa_user = ParticipaUser.objects.get(email=demo_data['email'])
+        if participa_user.valid_user == False:
             user = _create_IS_user(initiative_url, demo_data)
-            participa_user['ideascale_id'] = user['id']
+            participa_user.ideascale_id = user['id']
             participa_user.save()
     except ParticipaUser.DoesNotExist:    
         user = _create_IS_user(initiative_url, demo_data)

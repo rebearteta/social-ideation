@@ -95,8 +95,8 @@ DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
 ADMINS = (
 #    ('Jorge Saldivar', 'jorgesaldivar@gmail.com'),
-    ('Rebeca Arteta', 'rebkartt@gmail.com'),
-    ('Marcelo Alcaraz', 'marce.mmad@gmail.com')
+    ('Rebeca Arteta', 'rebeca.arteta@uc.edu.py'),
+    ('Marcelo Alcaraz', 'marcelo.alcaraz@uc.edu.py')
 )
 
 # Database

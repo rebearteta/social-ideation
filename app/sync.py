@@ -3,10 +3,11 @@ import json
 import traceback
 import re
 import string
+import os
 
 from app.error import AppError
 from app.models import Idea, Author, Location, Initiative, Comment, Vote, Campaign, ConsultationPlatform, \
-                       SocialNetworkApp, SocialNetworkAppUser, AutoComment
+                       SocialNetworkApp, SocialNetworkAppUser, AutoComment, ParticipaUser
 from app.utils import do_request, get_json_or_error, get_url_cb, build_request_url, convert_to_utf8_str, \
                       build_request_body, call_social_network_api
 from datetime import datetime
@@ -1278,3 +1279,28 @@ def cud_initiative_ideas(platform, initiative):
         changeable_fields = ('title', 'text', 'positive_votes', 'negative_votes')
         update_or_create_content(platform, idea, Idea, filters, idea_attrs, editable_fields, 'consultation_platform',
                                  changeable_fields)
+
+def check_valid_users(platform, initiative):
+    logger.warning('mmaddebug estoy ingresando correctamente a la funcion check valid users')
+    connector = platform.connector
+    url_cb = get_url_cb(connector, 'get_users_cb')
+    url = build_request_url(url_cb.url, url_cb.callback, {'initiative_id': initiative.external_id})
+    resp = do_request(connector, url, url_cb.callback.method)
+    users = get_json_or_error(connector.name, url_cb.callback, resp)
+    for user in users:
+        logger.warning('mmaddebug estoy ciclando')
+        try:
+            logger.warning(str(user) + 'mmaddebug')
+            participa_user = ParticipaUser.objects.get(ideascale_id = user[u'id'])
+            #if user['status'].split('/')[-1] == 'verified':
+            if 'verified' in user[u'status']:
+                logger.warning('mmaddebug entre en el if')
+                participa_user.valid_user = True
+            else:
+                logger.warning('mmaddebug entre en el else')
+                participa_user.valid_user = False
+            participa_user.save()
+        except Exception as e:
+            logger.warning(str(e))
+            #raise(e)
+      
