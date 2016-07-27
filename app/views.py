@@ -400,13 +400,14 @@ def _save_user(user_id, access_token, initiative_url, type_permission, demo_data
 
 
 def _get_demo_data(request):
-    name = request.GET.get('name')
-    age = request.GET.get('age')
+    first_name = request.GET.get('first_name')
+    last_name = request.GET.get('last_name')
+    birthdate = request.GET.get('birthdate')
     sex = request.GET.get('sex')
     email = request.GET.get('email')
     city = request.GET.get('city')
-    demo_data = {'name':name, 'age':age, 'sex':sex, 'email':email, 'city':city}
-    if (name!=None and email!=None):
+    demo_data = {'first_name':first_name, 'last_name':last_name, 'birthdate': birthdate, 'sex':sex, 'email':email, 'city':city}
+    if (first_name!=None and last_name!=None and email!=None):
     	return demo_data
     else:
 	return None
@@ -426,7 +427,7 @@ def _create_IS_user (initiative_url, demo_data):
     connector = cplatform.connector
     url_cb = get_url_cb(connector, 'create_user_cb')
     url = build_request_url(url_cb.url, url_cb.callback, {'initiative_id': initiative.external_id})
-    params = {'name': demo_data['name'], 'email': demo_data['email']}
+    params = {'name': demo_data['first_name']+' '+demo_data['last_name'], 'email': demo_data['email']}
     body_param = build_request_body(connector, url_cb.callback, params)
     resp = do_request(connector, url, url_cb.callback.method, body_param)
     user = get_json_or_error(connector.name, url_cb.callback, resp)
