@@ -7,14 +7,16 @@ class ParticipaUser(models.Model):
 #    ideascale_id = models.CharField(max_length=50, blank=True) #a blank external_id means he hasn't joined the initiatitive 
     ideascale_id = models.IntegerField(blank=True)
     valid_user = models.BooleanField(default=False)
-    name = models.CharField(max_length=100, null=True)
+    first_name = models.CharField(max_length=100, blank=True)
+    last_name = models.CharField(max_length=100, blank=True)
     email = models.EmailField()
     #new_attributes
-    age = models.CharField(max_length=20, choices=choices.GRUPOS_ETARIOS)
+    birthdate = models.DateField(auto_now=True)
+    #age = models.CharField(max_length=20, choices=choices.GRUPOS_ETARIOS)
     city = models.CharField(max_length=20, choices=choices.CIUDADES)
     sex = models.CharField(max_length=10, choices=choices.SEXOS) 
     def __str__(self):
-        return self.name + ' - '+ self.email
+        return self.first_name + ' ' + self.last_name + ' - '+ self.email
 
 class SocialNetworkAppUser(models.Model):
     external_id = models.CharField(max_length=50)

@@ -3,7 +3,146 @@
 {% load i18n %}
 
 {% block script %}
+  <!-- <style>
+        div.my-hidden {
+            display: none;
+        }
+        body {
+            position: relative;
+            padding-top: 80px;
+        }
+        nav {
+            padding-top: 10px;
+            padding-bottom: 10px;
+        }
+    </style> -->
 
+<script type="text/javascript">
+  $( function() {
+    $( "#id_birthdate" ).datepicker();
+  } );
+  </script>   
+</script> 
+   <script type="text/javascript">
+        function getQueryVariable(variable) {
+           var query = window.location.search.substring(1);
+           var vars = query.split("&");
+           for (var i=0;i<vars.length;i++) {
+               var pair = vars[i].split("=");
+               if (pair[0] == variable) {
+                return pair[1];
+               }
+           } 
+           //alert('Query Variable ' + variable + ' not found');
+           return "False";
+      }
+
+        function prepareRegister(initiative_url){
+            //document.getElementById('RegisterForm').submit();
+            var first_name = document.getElementById('id_first_name').value;
+            var last_name = document.getElementById('id_last_name').value;
+            var birthdate = document.getElementById('id_birthdate').value;
+            var sex = document.getElementById('id_sex').value;
+            var email = document.getElementById('id_email').value;
+            var city = document.getElementById('id_city').value;
+            console.log(email);
+            startConnect(initiative_url);
+
+        };
+        function startConnect(initiative_url)
+            {
+            var first_name = document.getElementById('id_first_name').value;
+            var last_name = document.getElementById('id_last_name').value;
+            var birthdate = document.getElementById('id_birthdate').value;
+            var sex = document.getElementById('id_sex').value;
+            var email = document.getElementById('id_email').value;
+            var city = document.getElementById('id_city').value;
+
+            FB.login(function(response) {
+                if (response.authResponse) {
+                var next_url = window.location.origin +  window.location.pathname;
+                next_url = next_url.substring(0,next_url.lastIndexOf("/"));    
+                window.location = next_url + '/login_fb' +
+                            '?access_token=' + response.authResponse.accessToken +
+                            '&expires=' + response.authResponse.expiresIn +
+                            '&signed_request=' + response.authResponse.signedRequest +
+                            '&user_id=' + response.authResponse.userID +
+                            '&initiative_url=' + initiative_url +
+                            '&first_name=' + first_name + 
+                            '&last_name=' + last_name + 
+                            '&birthdate=' + birthdate +
+                            '&sex=' + sex +
+                            '&email=' + email +
+                            '&city=' + city;
+                } else {
+                    checkStatusCallback(response);
+                }
+            }, {scope: 'public_profile,email,user_friends', show_faces :true})
+        };
+        function IS_login(initiative_url){
+            var first_name = document.getElementById('id_first_name').value;
+            var last_name = document.getElementById('id_last_name').value;
+            var birthdate = document.getElementById('id_birthdate').value;
+            var sex = document.getElementById('id_sex').value;
+            var email = document.getElementById('id_email').value;
+            var city = document.getElementById('id_city').value;
+
+            var next_url = window.location.origin +  window.location.pathname;
+            next_url = next_url.substring(0,next_url.lastIndexOf("/"));    
+            window.location = next_url + '/login_IS' +
+                            '?initiative_url=' + initiative_url +
+                            '&first_name=' + first_name + 
+                            '&last_name=' + last_name + 
+                            '&birthdate=' + birthdate +
+                            '&sex=' + sex +
+                            '&email=' + email +
+                            '&city=' + city;
+        };
+        function askWritingPermissions(initiative_url) {
+            $('#writingPermissionModal').modal('hide');
+            FB.login(function(response) {
+                console.log(initiative_url);
+                if (response.authResponse) {
+                   // var next_url = window.location.origin +  window.location.pathname;
+                   var next_url = window.location.origin +  window.location.pathname;
+                   next_url = next_url.substring(0,next_url.lastIndexOf("/")); 
+                    window.location = next_url + '/write_permissions_fb' +
+                            '?access_token=' + response.authResponse.accessToken +
+                            '&expires=' + response.authResponse.expiresIn +
+                            '&signed_request=' + response.authResponse.signedRequest +
+                            '&user_id=' + response.authResponse.userID +
+                            '&initiative_url=' + initiative_url;
+                } else {
+                    checkStatusCallback(response);
+                }
+            }, {scope: 'publish_actions'})
+        };
+        function checkStatusCallback(response) {
+            if (response.status === 'connected') {
+                var next_url = window.location.origin +  window.location.pathname;
+                next_url = next_url.substring(0,next_url.lastIndexOf("/"));   
+                $.ajax({
+                    url: next_url + '/check_user' + '?user_id=' + response.authResponse.userID,
+                    success: function(result) {
+                        if (result) {
+                            document.getElementById('status').className = 'alert alert-info';
+                            document.getElementById('status').style.display = 'block';
+                            document.getElementById('status').innerHTML = result;
+                        } else {
+                            document.getElementById('status').style.display = 'none';
+                        }
+                    }
+                });
+            } else if (response.status === 'not_authorized') {
+                // The person is logged into Facebook, but not your app.
+                document.getElementById('status').style.display = 'none';
+            } else {
+                // The person is not logged into Facebook, so we're not sure if
+                // they are logged into this app or not.
+                document.getElementById('status').style.display = 'none';
+            }
+        }
+    </script>
 
 
 {% endblock %}
@@ -45,13 +184,30 @@
                               <label style="text-align: left; padding-top: 0.8em;">{{ field.label }}</label>
                           </div>
                           <div class="8u 12u(mobile)">
-                              {{ field }}
+                              {% if field.label == "Fecha de Nacimiento" %}
+                                 <input id="id_birthdate" name="birthdate" type="date" class="birthdate">
+                              {% else %}
+                                 {{ field }}
+                              {% endif %}
                           </div>
                        </div>
                     {% endfor %}
+                      <div class="row 100%">
+                          <div class="12u">
+                              <a class="button" href="#openModal">Registrarme</a>
+                          </div>
+                      </div>
+                   <!-- <div class="row">
+                        <div class="4u 12u(mobile)">
+                             <label style="text-align: left; padding-top: 0.8em;">Fecha</label>
+                        </div>
+                        <div class="8u 12u(mobile)">
+                            <input type="date" name="username"><br>
+                        </div>
+                    </div>
                     <div class="row 100%">
                       <div class="12u">
-                          <a class="btn btn-lg btn-success" href="javascript:;" role="button" onclick="prepareRegister('{{ initiative_url }}'); return false;">
+                          <a class="btn btn-lg btn-success" href="javascript:;" role="button" onclick="startConnect('{{ initiative_url }}'); return false;">
                               <span class="glyphicon glyphicon-log-in" aria-hidden="true"></span>
                                     &nbsp;&nbsp;{% trans "Log in con Facebook" %}
                          </a> &nbsp;&nbsp;
@@ -59,7 +215,7 @@
                             <span class="glyphicon glyphicon-pencil" aria-hidden="true"></span>
                                   &nbsp;&nbsp;{% trans "Log in con IdeaScale" %}
                         </a>
-                      </div>
+                      </div> -->
                     </div>
                   </div>
                 </form>
@@ -68,5 +224,88 @@
         </article>
       </div>
 
+
+
+<div id="openModal" class="modalDialog">
+	<div>
+		<a href="#close" title="Close" class="close">X</a>
+		<h3>Elige con qué plataform ingresar</h3>
+                    <div class="row 100%">
+                      <div class="12u">
+                          <a class="btn btn-lg btn-primary" href="javascript:;" role="button" onclick="startConnect('{{ initiative_url }}'); return false;">
+                             <span style="padding-right:3px; padding-top: 3px; display:inline-block;">
+                                   <img src="/static/img/fb_icon.png" style="height:25px; width:auto; vertical-align: middle"></img>
+                             </span> &nbsp;&nbsp;{% trans "Log in con Facebook" %}
+                          </a> &nbsp;&nbsp;
+
+                         <a class="btn btn-lg btn-warning" href="javascript:;" role="button" onclick="IS_login('{{ initiative_url }}'); return false;">
+                             <span style="padding-right:3px; padding-top: 3px; display:inline-block;">
+                                   <img src="/static/img/is_icon.png" style="height:25px; width:auto;"></img>
+                             </span> &nbsp;&nbsp;{% trans "Log in con IdeaScale" %}
+                         </a>
+                   </div>
+              </div>
+
+	</div>
+</div>
+
+<div id="fb-root"></div>
+<div class="modal fade" id="writingPermissionModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title" id="myModalLabel">Social Ideation App</h4>
+      </div>
+      <div class="modal-body">
+      {% trans "We are going to publish on your behalf" %} <b>{% trans "ONLY" %}</b> {% trans "inside the Facebook group associated to the initiative" %};
+      {% trans "never on your wall nor on your friends' wall" %}.<br><br>
+        <div class="alert alert-warning" role="alert">
+            <span class="glyphicon glyphicon-warning-sign" aria-hidden="true"></span>
+            <b>{% trans "Attention!" %}</b>
+            <i>{% trans "Please make sure to select the option 'Public' from the dropdown menu of the following window, so all the members of the group can see your posts" %}.</i>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" onclick="askWritingPermissions('{{ initiative_url }}'); return false;">{% trans "Ok" %}</button>
+        <button type="button" class="btn btn-default" data-dismiss="modal">{% trans "Cancel" %}</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+
+<script type="text/javascript">
+    window.fbAsyncInit = function() {
+        FB.init({
+            appId: '1639456526287470',
+            status: true,
+            cookie: true,
+            xfbml: true,
+            oauth: true
+        });
+
+        FB.getLoginStatus(function(response) {
+            checkStatusCallback(response);
+        });
+        var wr_perm = getQueryVariable("wr_perm");
+        if (wr_perm == 'True'){
+            console.log("SI VOY A PEDIR WR_PERM WOHOOOOO");
+            askWritingPermissions('{{ initiative_url }}');
+        } else {
+           console.log("no pido wr perm");
+        }
+    };
+
+    (function() {
+        var e = document.createElement('script'); e.async = true;
+        e.src = document.location.protocol +
+                '//connect.facebook.net/es_ES/all.js';
+        document.getElementById('fb-root').appendChild(e);
+    }());
+
+</script>
 {% endblock %}
 
