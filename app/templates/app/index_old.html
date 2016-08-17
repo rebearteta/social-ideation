@@ -1,0 +1,379 @@
+{% extends 'app/base.html' %}
+
+{% load i18n %}
+
+{% block script %}
+    <style>
+        div.my-hidden {
+            display: none;
+        }
+        body {
+            position: relative;
+            padding-top: 80px;
+        }
+        nav {
+            padding-top: 10px;
+            padding-bottom: 10px;
+        }
+    </style>
+    <script type="text/javascript">
+        function startConnect(initiative_url){
+            FB.login(function(response) {
+                if (response.authResponse) {
+                    var next_url = window.location.origin +  window.location.pathname;
+                    window.location = next_url + 'app/login_fb' +
+                            '?access_token=' + response.authResponse.accessToken +
+                            '&expires=' + response.authResponse.expiresIn +
+                            '&signed_request=' + response.authResponse.signedRequest +
+                            '&user_id=' + response.authResponse.userID +
+                            '&initiative_url=' + initiative_url;
+                } else {
+                    checkStatusCallback(response);
+                }
+            }, {scope: 'public_profile,email,user_friends', show_faces :true})
+        };
+        function askWritingPermissions(initiative_url) {
+            $('#writingPermissionModal').modal('hide');
+            FB.login(function(response) {
+                console.log(initiative_url);
+                if (response.authResponse) {
+                    var next_url = window.location.origin +  window.location.pathname;
+                    window.location = next_url + 'app/write_permissions_fb' +
+                            '?access_token=' + response.authResponse.accessToken +
+                            '&expires=' + response.authResponse.expiresIn +
+                            '&signed_request=' + response.authResponse.signedRequest +
+                            '&user_id=' + response.authResponse.userID +
+                            '&initiative_url=' + initiative_url;
+                } else {
+                    checkStatusCallback(response);
+                }
+            }, {scope: 'publish_actions'})
+        };
+        function checkStatusCallback(response) {
+            if (response.status === 'connected') {
+                var next_url = window.location.origin +  window.location.pathname;
+                $.ajax({
+                    url: next_url + 'app/check_user' + '?user_id=' + response.authResponse.userID,
+                    success: function(result) {
+                        if (result) {
+                            document.getElementById('status').className = 'alert alert-info';
+                            document.getElementById('status').style.display = 'block';
+                            document.getElementById('status').innerHTML = result;
+                        } else {
+                            document.getElementById('status').style.display = 'none';
+                        }
+                    }
+                });
+            } else if (response.status === 'not_authorized') {
+                // The person is logged into Facebook, but not your app.
+                document.getElementById('status').style.display = 'none';
+            } else {
+                // The person is not logged into Facebook, so we're not sure if
+                // they are logged into this app or not.
+                document.getElementById('status').style.display = 'none';
+            }
+        }
+    </script>
+{% endblock %}
+
+
+
+{% block main %}
+{% trans "participate" as participate %}
+{% trans "without leaving Facebook" as without_leave_facebook %}
+{% trans "only" as only %}
+<div class="container">
+    <nav class="navbar navbar-default navbar-fixed-top">
+      <div class="container">
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#myNavbar">
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+          </button>
+          <img src="/static/img/app_icon.png" alt="Brand" height="55" width="55" class="img-responsive">
+        </div>
+        <div>
+          <div class="collapse navbar-collapse" id="myNavbar">
+            <ul class="nav navbar-nav navbar-right">
+              <li><a href="#section1">{% trans "Home" %}</a></li>
+              <li><a href="#how-to-use">{% trans "How to use it" %}</a></li>
+              <li><a href="#how-it-works">{% trans "How it works" %}</a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </nav>
+    <div id="status" role="alert" class="my-hidden"></div>
+    <div id="section1">
+      <div class="jumbotron">
+        <h1>Social Ideation App</h1>
+        <p align="left">
+            {% trans "Social Ideation is an application that will allow you to participate on the initiative" %}
+            <b><a href="{{ initiative_url }}" target="_blank">{{ initiative_name }}</a></b>
+            <i>{% trans "directly from Facebook" %}</i>.
+            <b>{% trans "Just follow the next steps" %}</b>.
+           <!--  <div id="pushing-msg" align="left" class="my-hidden">
+                <br>
+                    <b>{% trans "If you want to make use of this advantage, please log into the app by clicking on the next button" %}</b>
+                <br>
+            </div> -->
+        </p>
+        <!-- <div id="button" class="my-hidden">
+            <button class="btn btn-lg btn-primary" type="button" onclick="startConnect(); return false;">
+                {% trans "I agree to use the App" %}
+            </button>
+        </div>
+        <p id="status"></p> -->
+      </div>
+      <!--
+      <div class="alert alert-warning" role="alert">
+            <span class="glyphicon glyphicon-warning-sign" aria-hidden="true"></span>
+            <b>{% trans "Attention!" %}</b>
+            {% trans "Make sure to perform ALL of the 3 steps to correctly install the app" %}
+      </div>
+      -->
+      <!--
+      <form action='app/process_login' method='post'>
+             {% csrf_token %} 
+             {{ form }}
+             <input type="submit" value="Submit"/>
+      </form> 
+      -->
+<a class="btn btn-warning" href="/app/register" role="button">
+                    <span class="glyphicon glyphicon-pencil" aria-hidden="true"></span>
+                    Registrarse
+                </a>
+
+<a class="btn btn-success" href="javascript:;" role="button" onclick="startConnect('{{ initiative_url }}'); return false;">
+                  <span class="glyphicon glyphicon-log-in" aria-hidden="true"></span>
+                  &nbsp;&nbsp;{% trans "Log in con Facebook" %}
+              </a>
+<a class="btn btn-success" href="javascript:;" role="button" onclick="IS_login('{{ initiative_url }}'); return false;">
+                  <span class="glyphicon glyphicon-log-in" aria-hidden="true"></span>
+                  &nbsp;&nbsp;{% trans "Log in con IdeaScale" %}
+              </a>
+<a class="btn btn-primary" href="{{ initiative_url }}" role="button">
+                    <span class="glyphicon glyphicon-home" aria-hidden="true"></span>
+                   Ir a IdeaScale
+                </a>
+<a class="btn btn-primary" href="{{ fb_group_url }}" role="button">
+                    <span class="glyphicon glyphicon-home" aria-hidden="true"></span>
+                   Ir al Grupo en FB
+                </a>
+
+
+<div name="campaigns">
+<h2>CAMPAIGNS</h2>
+<ol>
+{% for campaign in campaigns %}
+	<li>
+		Nombre: {{campaign.name}}<br>
+                Url: {{ initiative_url }}/a/ideas/top/campaign-filter/byids/campaigns/{{campaign.external_id}}
+	</li>
+        <br>
+{% endfor %}
+</ol>
+</div>
+
+
+<div name="top ideas">
+<h2>TOP IDEAS</h2>
+<ol>
+{% for idea in top %}
+	<li>
+		Por: {{idea.author}}<br>
+		Fecha: {{idea.datetime}}<br><br>
+                {{idea.text}}<br>
+                Link: {{idea.url}}<br>
+	</li>
+        <br>
+{% endfor %}
+</ol>
+</div>
+
+<div name="recent ideas">
+<h2>RECENT IDEAS</h2>
+<ol>
+{% for idea in recent %}
+        <li>
+                Por: {{idea.author}}<br>
+                Fecha: {{idea.datetime}}<br><br>
+                {{idea.text}}<br>
+                Link: {{idea.url}}<br>
+        </li>
+        <br>
+{% endfor %}
+</ol>
+</div>
+
+<!--
+           <div id="how-to-use" class="container">
+        <div class="row">
+            <div class="col-md-4">
+              <p align="center">
+                <img src="/static/img/group.png" alt="Facebook Group" height="100" width="100">
+              </p>
+              <h2>{% trans "Step 1" %}</h2>
+              <p>
+                  {% trans "Join the Facebook linked to the initiative" %}
+                  <b><a href="{{ initiative_url }}" target="_blank">{{ initiative_name }}</a></b>,
+                  {% trans "which will offer you a an alternative participation channel" %}.
+              </p>
+              <a class="btn btn-primary" href="{{ fb_group_url }}" role="button">
+                    <span class="glyphicon glyphicon-home" aria-hidden="true"></span>
+                    &nbsp;&nbsp;{% trans "Join Group" %}
+                </a>
+                <br><br>
+            </div>
+
+            <div class="col-md-4">
+              <p align="center">
+                <img src="/static/img/login.png" alt="App Icon" height="100" width="90">
+              </p>
+              <h2>{% trans "Step 2" %}</h2>
+              <p>{% trans "Log into <b>Social Ideation App</b> so the ideas and comments you post on the" %}
+                 <b><a href="{{ fb_group_url }}" target="_blank">{% trans "group's" %}</a></b>
+                 {% trans "timeline will be automatically replicated on the page of the initiative" %}
+                 <b><a href="{{ initiative_url }}" target="_blank">{{ initiative_name }}</a></b> {% trans "on IdeaScale" %}
+                 {% trans "(see the" %} <b><a href="#scenario-1">{% trans "scenario" %} 1</a></b> {%trans "to better understand how it works)" %}
+              </p>
+              <a class="btn btn-success" href="javascript:;" role="button" onclick="startConnect('{{ initiative_url }}'); return false;">
+                  <span class="glyphicon glyphicon-log-in" aria-hidden="true"></span>
+                  &nbsp;&nbsp;{% trans "Log in" %}
+              </a>
+              <br><br>
+           </div>
+            <div class="col-md-4">
+              <p align="center">
+                <img src="/static/img/write_permission.png" alt="App Icon" height="100" width="100">
+              </p>
+              <h2>{% trans "Step 3" %}</h2>
+              <p>{% trans "Give <b>Social Ideation App</b> the permission to post on your behalf inside the" %}
+                 <b><a href="{{ fb_group_url }}" target="_blank">{% trans "group" %}</a></b> {% trans "the ideas and comments you publish on the page of the initiative" %}
+                 <b><a href="{{ initiative_url }}" target="_blank">{{ initiative_name }}</a></b> {% trans "on IdeaScale" %}
+                 {% trans "(see the" %} <b><a href="#scenario-2">{% trans "scenario" %} 2</a></b> {% trans "to better understand how it works)" %}.
+              </p>
+              <button type="button" class="btn btn-warning" data-toggle="modal" data-target="#writingPermissionModal">
+                    <span class="glyphicon glyphicon-pencil" aria-hidden="true"></span>
+                    &nbsp;&nbsp;{% trans "Allow it" %}
+              </button>
+            </div>
+          </div>
+-->
+          <!--<div class="row">
+              <div class="col-md-4">
+                <a class="btn btn-primary" href="{{ fb_group_url }}" role="button">
+                    <span class="glyphicon glyphicon-home" aria-hidden="true"></span>
+                    &nbsp;&nbsp;{% trans "Join Group" %}
+                </a>
+              </div>
+              <div class="col-md-4">
+                <a class="btn btn-success" href="javascript:;" role="button" onclick="startConnect(); return false;">
+                  <span class="glyphicon glyphicon-log-in" aria-hidden="true"></span>
+                  &nbsp;&nbsp;{% trans "Log in" %}
+                </a>
+              </div>
+              <div class="col-md-4">
+                <button type="button" class="btn btn-warning" data-toggle="modal" data-target="#writingPermissionModal">
+                    <span class="glyphicon glyphicon-pencil" aria-hidden="true"></span>
+                    &nbsp;&nbsp;{% trans "Allow it" %}
+                </button>
+                <a class="btn btn-warning" href="javascript:;" role="button" onclick="askWritingPermissions(); return false;">
+                  <span class="glyphicon glyphicon-pencil" aria-hidden="true"></span>
+                  &nbsp;&nbsp;{% trans "Allow it" %}
+                </a>
+              </div>
+          </div> -->
+          <br><br>
+          <h1 id="how-it-works" class="page-header">{% trans "How it works" %}</h1>
+          {% trans "The following images illustrates how Social Ideation App works under different situations" %}<br><br>
+          <h4 id="scenario-1"><span class="label label-primary">{% trans "Scenario 1" %}</span></h4><br>
+          {% trans "The ideas posted on" %} <b><a href="{{ fb_group_url }}" target="_blank">{% trans "the Facebook group" %}</a></b>
+          {% trans "are later automatically replicated on the page of" %}
+          <b><a href="{{ initiative_url }}" target="_blank">{{ initiative_name }}</a></b>
+          {% trans "the initiative on IdeaScale" %}
+          <br><br>
+          <img src="/static/img/scenario_1.png" alt="Scenario 1" height="146" width="716">
+          <br><br>
+          <h4 id="scenario-2"><span class="label label-primary">{% trans "Scenario 2" %}</span></h4><br>
+          {% trans "The ideas posted on the page of" %}
+          <b><a href="{{ initiative_url }}" target="_blank">{{ initiative_name }}</a></b>
+          {% trans "on IdeaScale are later automatically replicated on the" %}
+          <b><a href="{{ fb_group_url }}" target="_blank">{% trans "Facebook group" %}</a></b>
+          <br><br>
+          <img src="/static/img/scenario_2.png" alt="Scenario 2" height="222" width="716">
+          <br><br>
+          <!-- <h4 id="scenario-3"><span class="label label-primary">{% trans "Scenario 3" %}</span></h4><br>
+          {% trans "Comment posted on Facebook and then automatically replicated on the initiative page on IdeaScale" %}<br><br>
+          <img src="/static/img/scenario_3.png" alt="Scenario 3" height="100" width="716">
+          <br><br>
+          <h4 id="scenario-4"><span class="label label-primary">{% trans "Scenario 4" %}</span></h4><br>
+          {% trans "Comment posted on IdeaScale and then automatically replicated on the Facebook group" %}<br><br>
+          <img src="/static/img/scenario_4.png" alt="Scenario 4" height="142" width="716">
+          <br><br> -->
+          <br>
+          <footer id="contact" class="footer">
+            <h5>
+                <small>
+                    {% trans "Social Ideation App is a part of a research project conducted by the" %}
+                    <a href="http://lifeparticipation.org/" target="_blank">Life Participation Research Group</a>
+                    {% trans "of the University of Trento (Italy) with the aim to exploit the advantages of social network" %}
+                    {% trans "services to improving the technologies for civic participation. For more information, drop us an" %}
+                    <a href="mailto:hola@social-ideation.com" target="_blank">{% trans "email" %}</a>.
+                </small>
+            </h5>
+          </footer>
+        </div> <!-- /container -->
+    </div>
+</div>
+<div id="fb-root"></div>
+<!-- Modal -->
+<div class="modal fade" id="writingPermissionModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title" id="myModalLabel">Social Ideation App</h4>
+      </div>
+      <div class="modal-body">
+      {% trans "We are going to publish on your behalf" %} <b>{% trans "ONLY" %}</b> {% trans "inside the Facebook group associated to the initiative" %};
+      {% trans "never on your wall nor on your friends' wall" %}.<br><br>
+        <div class="alert alert-warning" role="alert">
+            <span class="glyphicon glyphicon-warning-sign" aria-hidden="true"></span>
+            <b>{% trans "Attention!" %}</b>
+            <i>{% trans "Please make sure to select the option 'Public' from the dropdown menu of the following window, so all the members of the group can see your posts" %}.</i>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" onclick="askWritingPermissions('{{ initiative_url }}'); return false;">{% trans "Ok" %}</button>
+        <button type="button" class="btn btn-default" data-dismiss="modal">{% trans "Cancel" %}</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script type="text/javascript">
+    window.fbAsyncInit = function() {
+        FB.init({
+            appId: '1639456526287470',
+            status: true,
+            cookie: true,
+            xfbml: true,
+            oauth: true
+        });
+
+        FB.getLoginStatus(function(response) {
+            checkStatusCallback(response);
+        });
+    };
+
+    (function() {
+        var e = document.createElement('script'); e.async = true;
+        e.src = document.location.protocol +
+                '//connect.facebook.net/ru_RU/all.js';
+        document.getElementById('fb-root').appendChild(e);
+    }());
+</script>
+
+{% endblock %}

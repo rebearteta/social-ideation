@@ -1,9 +1,11 @@
+# -*- coding: UTF-8 -*-
 import logging
 import json
 import traceback
 import re
 import string
 import os
+import random
 
 from app.error import AppError
 from app.models import Idea, Author, Location, Initiative, Comment, Vote, Campaign, ConsultationPlatform, \
@@ -168,6 +170,159 @@ def do_create_update_comment(platform, initiative, comment, source):
         return None
 
 
+
+def _prepare_email_msg(content, author_name_utf8, type_content, snapp, type_email, language, parent_author):
+    activate(language)
+    subject = _('Participa en tu Educacion')
+    subject = 'Participa en tu Educación'
+
+    if type_content == 'idea':
+        t_content = _('idea')
+    elif type_content == 'comment':
+        t_content = _('comentario')
+    else:
+        t_content = _('voto')
+
+    try:
+        if not content.url:
+            if content.parent_idea:
+                link = content.parent_idea.url
+            else:
+                parent = content.parent_comment
+                while True:
+                    if parent.parent_idea:
+                        link = parent.parent_idea.url
+                        break
+                    else:
+                        parent = parent.parent_comment
+        else:
+            link = content.url
+    except:
+        if content.parent_idea:
+            link = content.parent_idea.url
+        else:
+            parent = content.parent_comment
+            while True:
+                if parent.parent_idea:
+                    link = parent.parent_idea.url
+                    break
+                else:
+                    parent = parent.parent_comment
+
+    if content.source == 'consultation_platform':
+        url = snapp.community.url
+        url_name = 'el Grupo de Facebook'
+        pub_url = '{}/{}'.format(snapp.community.url, content.sn_id)
+    else:
+        url = content.initiative.url   
+        url_name = 'IdeaScale'
+        pub_url = '{}/a/dtd/{}-41051'.format(content.initiative.url, content.cp_id)
+
+    ctx = {
+        'author': author_name_utf8,
+        'initiative_name': content.initiative.name,
+        'initiative_url': content.initiative.url,
+        'group_url': snapp.community.url,
+        'type_content': t_content,
+        'url': url,
+        'url_name': url_name,
+        'pub_url': pub_url,
+        'link': link
+    }
+    if parent_author:
+        ctx['parent_author'] = parent_author
+    if type_email == 'login_app':
+        html_msg = get_template('app/email/email_login_app.html').render(Context(ctx))
+        txt_msg = render_to_string('app/email/email_login_app.html', ctx)
+    elif type_email == 'authorize_writing':
+        html_msg = get_template('app/email/email_writing_perm.html').render(Context(ctx))
+        txt_msg = render_to_string('app/email/email_writing_perm.txt', ctx)
+    elif type_email == 'join_group':
+        html_msg = get_template('app/email/email_join_group.html').render(Context(ctx))
+        txt_msg = render_to_string('app/email/email_join_group.txt', ctx)
+    elif type_email == 'new_idea':
+        html_msg = get_template('app/email/email_new_content.html').render(Context(ctx))
+        txt_msg = render_to_string('app/email/email_new_content.txt', ctx)
+    elif type_email == 'new_comment':
+        html_msg = get_template('app/email/email_new_content.html').render(Context(ctx))
+        txt_msg = render_to_string('app/email/email_new_content.txt', ctx)
+    elif type_email == 'idea_commented':
+        html_msg = get_template('app/email/email_content_commented.html').render(Context(ctx))
+        txt_msg = render_to_string('app/email/email_content_commented.txt', ctx)
+    elif type_email == 'comment_commented':
+        html_msg = get_template('app/email/email_content_commented.html').render(Context(ctx))
+        txt_msg = render_to_string('app/email/email_content_commented.txt', ctx)
+    elif type_email == 'idea_voted':
+        html_msg = get_template('app/email/email_new_vote.html').render(Context(ctx))
+        txt_msg = render_to_string('app/email/email_new_vote.txt', ctx)
+    elif type_email == 'comment_voted':
+        html_msg = get_template('app/email/email_new_vote.html').render(Context(ctx))
+        txt_msg = render_to_string('app/email/email_new_vote.txt', ctx)
+    else:
+        logger.warning('Unknown type of email notification. Message could not be sent')
+        return None
+    deactivate()
+    return {'html': html_msg, 'txt': txt_msg, 'subject': subject}
+
+
+def _send_notification_email(recipient_address, subject, msg):
+        to_email = [recipient_address]
+        from_email = 'Participa en tu Educación <participa@uc.edu.py>'
+        email = EmailMessage(subject, msg, to=to_email, from_email=from_email)
+       # email = EmailMessage(subject, msg, to=to_email)
+        email.content_subtype = 'html'
+        email.send(fail_silently=True)
+        return True
+
+
+def is_user_first_content(content, type_content = 'idea'):
+    try:
+        author = content.author
+        if type_content == 'idea':
+            content = Idea.objects.filter(author=author)
+        else:
+            content = Comment.objects.filter(author=author)
+        if len(content) == 1:
+           return True
+        else:
+           return False
+    except:
+        return False
+
+def is_first_comment(comment):
+    try:
+        if comment.parent == 'idea':
+            #comments = Comment.objects.filter(parent_idea == comment.parent_idea)
+            n_comments = comment.parent_idea.comments
+        else:
+            #comments = Comment.objects.filter(parent_comment == comment.parent_comment)
+            n_comments = comment.parent_comment.comments
+        if n_comments == 1:
+            return True
+        else:
+            return False
+    except:
+        return False
+
+def is_first_vote(vote):
+    try:
+        if vote.parent == 'idea':
+            n_votes = vote.parent_idea.positive_votes
+        else:
+            n_votes = vote.parent_comment.positive_votes
+        if n_votes == 1:
+            return True
+        else:
+            return False
+    except:
+        return False
+
+def flip_coin():
+    num = random.randint(1,50)
+    if num <= 25:
+        return True
+    return False
+
 def do_create_update_vote(platform, initiative, vote, source):
     author = _update_or_create_author(platform, {'id': vote['user_id']}, source)
     parent_dict = _get_parent(vote['parent_type'], vote['parent_id'], source)
@@ -196,7 +351,36 @@ def do_create_update_vote(platform, initiative, vote, source):
             if vote_obj.value != vote['value']:
                 vote_obj.value = vote['value']
                 vote_obj.has_changed = True
+                _send_notification_email('marcelo.alcaraz@uc.edu.py', 'cambio voto cp', str(vote_obj.value) + ' --- ' +str(vote['value']))
             vote_obj.save()
+        else:
+            if source == 'consultation_platform':
+                _send_notification_email('marcelo.alcaraz@uc.edu.py', 'nuevo voto cp', str(vote_obj.value) + ' --- ' +str(vote['value']))
+
+        # a notification email must be sent only if the parent idea (or comment) comes from facebook
+        fb_parent = False
+        if vote_obj.parent == 'idea':
+            if vote_obj.parent_idea.source == 'social_network':
+                fb_parent = True
+        else:
+            if vote_obj.parent_comment.source == 'social_network':
+                fb_parent = True
+        # Whe should notify if:
+        # If the vote value has changed or if it is a new vote AND
+        # if the vote it's made on a facebook idea or comment AND
+        # if is the first vote of a publication OR if (it isn't then randomly)
+      
+        if (vote_obj.has_changed or vote_created) and fb_parent and (is_first_vote(vote_obj) or (not is_first_vote(vote_obj) and flip_coin())): 
+            if vote_obj.parent == 'idea':
+                # ENVIAR AQUI MAIL su idea ha sido votada
+                msgs = _prepare_email_msg(vote_obj, vote_obj.author.screen_name, 'idea', initiative.social_network.all()[0], 'idea_voted', initiative.language, vote_obj.parent_idea.author.screen_name)
+                ret = _send_notification_email(vote_obj.parent_idea.author.email, msgs['subject'], msgs['html'])
+            else:
+                # ENVIAR AQUI MAIL su comentario ha sido votado
+                msgs = _prepare_email_msg(vote_obj, vote_obj.author.screen_name, 'comment', initiative.social_network.all()[0], 'comment_voted', initiative.language, vote_obj.parent_comment.author.screen_name)
+                ret = _send_notification_email(vote_obj.parent_comment.author.email, msgs['subject'], msgs['html'])
+
+            
     else:
         logger.error('Vote {} could\'nt be synchronized because its parent {} with id {} couldn\'t be found'.
                      format(vote['id'], vote['parent_type'], vote['parent_id']))
@@ -250,6 +434,10 @@ def _do_publish_idea_sn(sn_app, idea, text_to_sn, mode, app_user=None):
     if mode and mode == 'batch':
         uri = '{}/feed'.format(sn_app.community.external_id)
         params = {'msg': text_to_sn, 'access_token': app_user.access_token, 'uri': uri}
+        # ENVIAR AQUI MAIL usuario creo una idea
+        if is_user_first_content(idea, 'idea'):
+            msgs = _prepare_email_msg(idea, idea.author.screen_name, 'idea', sn_app, 'new_idea', idea.initiative.language, None)
+            ret = _send_notification_email(idea.author.email, msgs['subject'], msgs['html'])
         return call_social_network_api(sn_app.connector, 'create_batch_request', params)
     try:
         params = {'app': sn_app, 'message': text_to_sn, 'app_user': app_user}
@@ -259,6 +447,11 @@ def _do_publish_idea_sn(sn_app, idea, text_to_sn, mode, app_user=None):
         idea.exist_sn = True
         idea.sync = True
         idea.save()
+        # ENVIAR AQUI MAIL usuario creo una idea
+        #author_name_utf8 = convert_to_utf8_str(idea.author.screen_name)
+        msgs = _prepare_email_msg(idea, idea.author.screen_name, 'idea', sn_app, 'new_idea', idea.initiative.language, None)
+        ret = _send_notification_email(idea.author.email, msgs['subject'], msgs['html'])
+
     except Exception as e:
         if 'blocked' in e.message:
             sn_app.blocked = timezone.make_aware(datetime.now(), timezone.get_default_timezone())
@@ -339,7 +532,7 @@ def publish_idea_sn(idea, sn_app, mode=None):
                 # From now, let's don't include the attachment
                 app_user = SocialNetworkAppUser.objects.get(email=idea.author.email)
                 return _do_publish_idea_sn(sn_app, idea, text_to_sn, mode, app_user)
-                #pass
+                
     elif idea.has_changed:
         title_utf8 = convert_to_utf8_str(idea.title)
         text_to_sn = template_idea_sn.format(title_utf8, idea.positive_votes,
@@ -360,17 +553,28 @@ def _do_publish_comment_sn(sn_app, comment, parent, text_to_sn, mode, type='post
         params = {'msg': text_to_sn, 'uri': uri,'access_token': app_user.access_token}
         return call_social_network_api(sn_app.connector, 'create_batch_request', params)
     try:
+        # commenting an idea (post)
         if type == 'post':
             params = {'app': sn_app, 'id_post': parent.sn_id, 'message': text_to_sn,'app_user': app_user}
             new_comment = call_social_network_api(sn_app.connector, 'comment_post', params)
+            if comment.parent_idea.source == 'social_network' and (is_first_comment(comment) or (not is_first_comment(comment) and flip_coin())):
+                msgs = _prepare_email_msg(comment, comment.author.screen_name, 'idea', sn_app, 'idea_commented', comment.initiative.language, comment.parent_idea.author.screen_name)
+                ret = _send_notification_email(comment.parent_idea.author.email, msgs['subject'], msgs['html'])
+        # commenting a comment
         else:
             params = {'app': sn_app, 'id_comment': parent.sn_id, 'message': text_to_sn,'app_user': app_user}
             new_comment = call_social_network_api(sn_app.connector, 'comment_comment', params)
+            if comment.parent_idea.source == 'social_network' and (is_first_comment(comment) or (not is_first_comment(comment) and flip_coin())):
+                msgs = _prepare_email_msg(comment, comment.author.screen_name, 'comment', sn_app, 'comment_commented', comment.initiative.language, comment.paret_comment.author.screen_name)
+                ret = _send_notification_email(comment.parent_comment.author.email, msgs['subject'], msgs['html'])
         comment.sn_id = new_comment['id']
         comment.is_new = False
         comment.exist_sn = True
         comment.sync = True
         comment.save()
+        if is_user_first_content(comment, 'comment'):
+            msgs = _prepare_email_msg(comment, comment.author.screen_name, 'comment', sn_app, 'new_comment', comment.initiative.language, None)
+            ret = _send_notification_email(comment.author.email, msgs['subject'], msgs['html'])
     except Exception as e:
         if 'blocked' in e.message:
             sn_app.blocked = timezone.make_aware(datetime.now(), timezone.get_default_timezone())
@@ -462,44 +666,6 @@ def publish_comment_sn(comment, sn_app, mode=None):
                 _do_edit_comment_sn(sn_app, comment, text_to_sn, app_user)
 
 
-def _prepare_email_msg(content, author_name_utf8, type_content, snapp, type_email, language):
-    activate(language)
-    subject = _('Socialize your contribution!')
-    if type_content == 'idea':
-        t_content = _('idea')
-    else:
-        t_content = _('comment')
-    ctx = {
-        'author': author_name_utf8,
-        'initiative_name': content.initiative.name,
-        'group_url': snapp.community.url,
-        'type_content': t_content
-    }
-    if type_email == 'login_app':
-        html_msg = get_template('app/email/email_login_app.html').render(Context(ctx))
-        txt_msg = render_to_string('app/email/email_login_app.html', ctx)
-    elif type_email == 'authorize_writing':
-        html_msg = get_template('app/email/email_writing_perm.html').render(Context(ctx))
-        txt_msg = render_to_string('app/email/email_writing_perm.txt', ctx)
-    elif type_email == 'join_group':
-        html_msg = get_template('app/email/email_join_group.html').render(Context(ctx))
-        txt_msg = render_to_string('app/email/email_join_group.txt', ctx)
-    else:
-        logger.warning('Unknown type of email notification. Message could not be sent')
-        return None
-    deactivate()
-    return {'html': html_msg, 'txt': txt_msg, 'subject': subject}
-
-
-def _send_notification_email(recipient_address, subject, msg):
-        to_email = [recipient_address]
-        from_email = 'Social Ideation App <hola@social-ideation.com>'
-        email = EmailMessage(subject, msg, to=to_email, from_email=from_email)
-        email.content_subtype = 'html'
-        email.send(fail_silently=True)
-        return True
-
-
 def _noti_email_already_sent(author, email_class):
     if author.payload:
         author_payload = json.loads(author.payload)
@@ -549,7 +715,7 @@ def _user_can_publish(content, author_name_utf8, sn_app, type_content):
             if initiative.notification_emails and \
                not _noti_email_already_sent(content.author, 'notification_email') and \
                _is_new_content(content, type_content):
-                msgs = _prepare_email_msg(content, author_name_utf8, type_content, sn_app, 'login_app', ini_language)
+                msgs = _prepare_email_msg(content, author_name_utf8, type_content, sn_app, 'login_app', ini_language, None)
                 ret = _send_notification_email(content.author.email, msgs['subject'], msgs['html'])
                 if ret:
                     _update_author_payload(content.author, 'notification_email', True)
@@ -568,7 +734,7 @@ def _user_can_publish(content, author_name_utf8, sn_app, type_content):
                 if initiative.notification_emails and \
                    not _noti_email_already_sent(content.author, 'notification_email') and \
                    _is_new_content(content, type_content):
-                    msgs = _prepare_email_msg(content, author_name_utf8, type_content, sn_app, 'authorize_writing', ini_language)
+                    msgs = _prepare_email_msg(content, author_name_utf8, type_content, sn_app, 'authorize_writing', ini_language, None)
                     ret = _send_notification_email(content.author.email, msgs['subject'], msgs['html'])
                     if ret:
                         _update_author_payload(content.author, 'notification_email', True)
@@ -583,7 +749,7 @@ def _user_can_publish(content, author_name_utf8, sn_app, type_content):
                 if initiative.notification_emails and \
                    not _noti_email_already_sent(content.author, 'notification_email') and \
                    _is_new_content(content, type_content):
-                    msgs = _prepare_email_msg(content, author_name_utf8, type_content, sn_app, 'join_group', ini_language)
+                    msgs = _prepare_email_msg(content, author_name_utf8, type_content, sn_app, 'join_group', ini_language, None)
                     ret = _send_notification_email(content.author.email, msgs['subject'], msgs['html'])
                     if ret:
                         _update_author_payload(content.author, 'notification_email', True)
@@ -620,6 +786,12 @@ def publish_idea_cp(idea):
         new_content = get_json_or_error(connector.name, url_cb.callback, resp)
         idea.cp_id = new_content['id']
         idea.is_new = False
+        ##################################################################################
+        # ENVIAR AQUI MAIL usuario creo una idea
+        if is_user_first_content(idea, 'idea'):
+            msgs = _prepare_email_msg(idea, idea.author.screen_name, 'idea', initiative.social_network.all()[0], 'new_idea', initiative.language, None)
+            ret = _send_notification_email(idea.author.email, msgs['subject'], msgs['html'])
+        #################################################################################
         # From now, don't attach fb icon to the ideas
         # It could introduce some bias by leading the attention of the participants
         # mainly toward the ideas with the icon
@@ -669,9 +841,29 @@ def publish_comment_cp(comment):
         if comment.parent == 'idea':
             url_cb = get_url_cb(connector, 'create_comment_idea_cb')
             url = build_request_url(url_cb.url, url_cb.callback, {'idea_id': comment.parent_idea.cp_id})
+            # ENVIAR AQUI MAIL su idea ha sido comentada
+            if comment.parent_idea.source == 'social_network' and (is_first_comment(comment) or (not is_first_comment(comment) and flip_coin())):
+                msgs = _prepare_email_msg(comment, comment.author.screen_name, 'idea', comment.initiative.social_network.all()[0], 'idea_commented', comment.initiative.language, comment.parent_idea.author.screen_name)
+                ret = _send_notification_email(comment.parent_idea.author.email, msgs['subject'], msgs['html'])
+            
+            # ENVIAR AQUI MAIL usuario creo un comentario
+            if is_user_first_content(comment, 'comment'):
+                msgs = _prepare_email_msg(comment, comment.author.screen_name, 'comment', comment.initiative.social_network.all()[0], 'new_comment', comment.initiative.language, None)
+                ret = _send_notification_email(comment.author.email, msgs['subject'], msgs['html'])
+
+
         elif comment.parent == 'comment':
             url_cb = get_url_cb(connector, 'create_comment_comment_cb')
             url = build_request_url(url_cb.url, url_cb.callback, {'comment_id': comment.parent_comment.cp_id})
+            # ENVIAR AQUI MAIL su comentario ha sido comentado
+            if comment.parent_comment.source == 'social_network' and (is_first_comment(comment) or (not is_first_comment(comment) and flip_coin())):
+                msgs = _prepare_email_msg(comment, comment.author.screen_name, 'comment', comment.initiative.social_network.all()[0], 'comment_commented', comment.initiative.language, comment.parent_comment.author.screen_name)
+                ret = _send_notification_email(comment.parent_comment.author.email, msgs['subject'], msgs['html'])
+
+            # ENVIAR AQUI MAIL usuario creo un comentario
+            if is_user_first_content(comment, 'comment'):
+                msgs = _prepare_email_msg(comment, comment.author.screen_name, 'comment', comment.initiative.social_network.all()[0], 'new_comment', comment.initiative.language, None)
+                ret = _send_notification_email(comment.author.email, msgs['subject'], msgs['html'])
         else:
             raise AppError('Unknown the type of the object\'s parent')
         body_param = build_request_body(connector, url_cb.callback, params)
@@ -773,23 +965,26 @@ def _send_notification_comment(snapp, post, initiative, problem):
     for campaign in campaigns:
         campaign_counter += 1
         if campaign_counter == len(campaigns):
-            campaign_hashtags += '#{}'.format(campaign.hashtag)
+            campaign_hashtags += '#{}'.format(convert_to_utf8_str(campaign.hashtag))
         else:
-            campaign_hashtags += '#{}, '.format(campaign.hashtag)
+            campaign_hashtags += '#{}, '.format(convert_to_utf8_str(campaign.hashtag))
     with override(initiative.language):
         if problem == 'missing_hashtag':
             msg = _('Hi {}!, it seems you\'ve tried to submit an idea without specifying the hashtag of the '
                     'campaign. If you\'ve forgotten to include the hashtag, please edit your post '
                     'and add one of the followings: {}. Thanks!')
+            msg = _(u'Hola {}!, aparentemente has tratado de enviar una idea sin especificar el hashtag de la temática. Si has olvidado incluir el hashtag, por favor edita tu post y agrega uno de los siguientes: {}. Gracias!')
         else:
             msg = _('Hi {}!, it seems you\'ve tried to submit an idea however the hashtag included in your post '
                     'matches none of the hashtags defined to identify the initiative\'s idea campaigns. '
                     'If you have misspelled the campaign hashtag, please edit the post and correct it using one '
                     'of the followings: {}. Thanks!')
+            msg = _(u'Hola {}!, aparentemente has tratado de enviar una idea pero el hashtag incluído en tu post no coincide con ninguno de los hashtags definidos para identificar las tmáticas de la iniciativa. Si no has escrito orrectamente el hashtag, por favor edita tu post y corrígelo usando uno de los siguientes: {}. Gracias')
         msg = msg.format(post['user_info']['name'], campaign_hashtags)
         for admin in snapp.community.admins.all():
             # If there are problems sending the notification with the first admin
-            # let's try with all of them until having success
+            # let's try with all of them until having successi
+
             if _do_send_notification_comment(snapp, post, msg, admin):
                 break
 
@@ -1281,26 +1476,59 @@ def cud_initiative_ideas(platform, initiative):
                                  changeable_fields)
 
 def check_valid_users(platform, initiative):
-    logger.warning('mmaddebug estoy ingresando correctamente a la funcion check valid users')
     connector = platform.connector
     url_cb = get_url_cb(connector, 'get_users_cb')
     url = build_request_url(url_cb.url, url_cb.callback, {'initiative_id': initiative.external_id})
     resp = do_request(connector, url, url_cb.callback.method)
     users = get_json_or_error(connector.name, url_cb.callback, resp)
     for user in users:
-        logger.warning('mmaddebug estoy ciclando')
         try:
-            logger.warning(str(user) + 'mmaddebug')
             participa_user = ParticipaUser.objects.get(ideascale_id = user[u'id'])
             #if user['status'].split('/')[-1] == 'verified':
             if 'verified' in user[u'status']:
-                logger.warning('mmaddebug entre en el if')
                 participa_user.valid_user = True
             else:
-                logger.warning('mmaddebug entre en el else')
                 participa_user.valid_user = False
             participa_user.save()
         except Exception as e:
             logger.warning(str(e))
             #raise(e)
-      
+
+def notify_new_campaigns(initiative):
+    try:
+        community = initiative.social_network.all()[0].community
+        campaigns = Campaign.objects.filter(initiative = initiative, notified = False)
+        for campaign in campaigns:
+            for user in community.members.all():
+                ctx = {
+                    'user': user.name,
+                    'campaign': campaign.name,
+                    'group_url': community.url,
+                    'initiative_url': initiative.url,
+                    'hashtag' : campaign.hashtag
+                }
+                html_msg = get_template('app/email/email_new_campaign.html').render(Context(ctx))
+                txt_msg = render_to_string('app/email/email_new_campaign.txt', ctx)
+                ret = _send_notification_email(user.email, 'Participa en tu Educación', html_msg)
+            campaign.notified = True
+            campaign.save()
+    except Exception as e:
+        logger.info('Error when try to notify new campaign')
+
+def count_other_platform_votes():
+    ideas = Idea.objects.all()
+    for idea in ideas:
+        other_positive_votes = Vote.objects.filter(parent_idea_id=idea.id, value=1).exclude(source=idea.source).count()
+        other_negative_votes = Vote.objects.filter(parent_idea_id=idea.id, value=-1).exclude(source=idea.source).count()
+        msg = "other positive = {}, other negative = {}".format(other_positive_votes, other_negative_votes)
+        idea.payload = msg
+        idea.save()
+    comments = Comment.objects.all()
+    for comment in comments:
+        other_positive_votes = Vote.objects.filter(parent_comment_id=comment.id, value=1).exclude(source=comment.source).count()
+        other_negative_votes = Vote.objects.filter(parent_comment_id=comment.id, value=-1).exclude(source=comment.source).count()
+        msg = "other positive = {}, other negative = {}".format(other_positive_votes, other_negative_votes)
+        comment.payload = msg
+        comment.save()
+
+
