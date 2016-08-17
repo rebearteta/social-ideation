@@ -86,18 +86,18 @@ WSGI_APPLICATION = 'social_ideation.wsgi.application'
 #For email
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_USE_TLS = True
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_HOST_USER = 'rebkartt@gmail.com'
-EMAIL_HOST_PASSWORD = 'yinjot2991'
-EMAIL_PORT = 587
+EMAIL_HOST = ''
+EMAIL_HOST_USER = ''
+EMAIL_HOST_PASSWORD = ''
+EMAIL_PORT = 
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
 
 ADMINS = (
-#    ('Jorge Saldivar', 'jorgesaldivar@gmail.com'),
-    ('Rebeca Arteta', 'rebeca.arteta@uc.edu.py'),
-    ('Marcelo Alcaraz', 'marcelo.alcaraz@uc.edu.py')
+    ('Jorge Saldivar', 'jorgesaldivar@gmail.com'),
 )
+
+
 
 # Database
 # https://docs.djangoproject.com/en/1.8/ref/settings/#databases
@@ -105,9 +105,9 @@ ADMINS = (
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'social_ideation',
-        'USER': 'root',
-        'PASSWORD': 'l3dUca.',
+        'NAME': '',
+        'USER': '',
+        'PASSWORD': '',
         'HOST': '127.0.0.1',
         'PORT': '3306',
         'DEFAULT_CHARSET': 'utf-8'

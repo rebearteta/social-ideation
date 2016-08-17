@@ -1,3 +1,4 @@
+# -*- coding: UTF-8 -*-
 import connectors.models
 import choices
 from django.db import models
@@ -11,11 +12,11 @@ class ParticipaUser(models.Model):
     last_name = models.CharField(max_length=100, blank=True)
     email = models.EmailField()
     #new_attributes
-    birthdate = models.DateField(auto_now=True)
+    birthdate = models.DateField()
     #age = models.CharField(max_length=20, choices=choices.GRUPOS_ETARIOS)
     city = models.CharField(max_length=20, choices=choices.CIUDADES)
     sex = models.CharField(max_length=10, choices=choices.SEXOS) 
-    def __str__(self):
+    def __unicode__(self):
         return self.first_name + ' ' + self.last_name + ' - '+ self.email
 
 class SocialNetworkAppUser(models.Model):
@@ -114,6 +115,7 @@ class Campaign(models.Model):
     initiative = models.ForeignKey(Initiative)
     hashtag = models.CharField(max_length=20, null=True, help_text="Max length 20 characters "
                                                                    "(do not include '#')")
+    notified = models.BooleanField(default=False)
 
     def __unicode__(self):
         return self.name

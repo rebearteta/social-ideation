@@ -203,14 +203,14 @@ def get_initiative_info():
             'fb_group_url': initiative.social_network.all()[0].community.url}
 
 def _get_recent_ideas ():
-    recent_ideas = Idea.objects.order_by('-datetime')[:3]
+    recent_ideas = Idea.objects.filter(sync=True).order_by('-datetime')[:3]
     for idea in recent_ideas:
         if idea.title == '' or idea.title == None:
             idea.title = ' '.join(idea.text.split()[:5])
     return recent_ideas
 
 def _get_top_ideas ():
-    top_ideas = Idea.objects.order_by('-positive_votes')[:3]
+    top_ideas = Idea.objects.filter(sync=True).order_by('-positive_votes')[:3]
     for idea in top_ideas:
         if idea.title == '' or idea.title == None:
             idea.title = ' '.join(idea.text.split()[:5])
@@ -372,6 +372,16 @@ def _save_user(user_id, access_token, initiative_url, type_permission, demo_data
             else:
                 user.read_permissions = True
             user.save()
+            #############################################################################
+            #try:
+            #    participa_user = ParticipaUser.objects.get(email=demo_data['email'])
+            #except ParticipaUser.DoesNotExist:
+            #    participa_user = ParticipaUser(**demo_data)
+            #    participa_user.save()
+            #    user.participa_user = participa_user
+            #    user.save()
+            #############################################################################
+
         except SocialNetworkAppUser.DoesNotExist:
             #############################################################################
             try:
@@ -403,6 +413,8 @@ def _get_demo_data(request):
     first_name = request.GET.get('first_name')
     last_name = request.GET.get('last_name')
     birthdate = request.GET.get('birthdate')
+    #birthdate = birthdate.split('-')
+    #birthdate = birthdate[2] + '-' + birthdate[1] + '-' + birthdate[0]
     sex = request.GET.get('sex')
     email = request.GET.get('email')
     city = request.GET.get('city')
@@ -419,7 +431,7 @@ def login_fb(request):
     initiatiative_url = request.GET.get('initiative_url')
     demo_data = _get_demo_data(request)
     _save_user(user_id, access_token, initiatiative_url, 'read', demo_data)
-    return redirect('/app/register?wr_perm=True')
+    return redirect('/app/register#askWRperm')
 
 def _create_IS_user (initiative_url, demo_data):
     initiative = Initiative.objects.get(url=initiative_url)
@@ -455,8 +467,8 @@ def login_IS(request):
     # After the new user is created in our DB a register-confirmation mail must be sent through the API
     # a session value (cookie) should be set here probably to recognize this user.
     
-    #return redirect(initiative_url)
-    return HttpResponse('We have sent you a confirmation mail. Please verify to join the IdeaScale Initiative ' + str(initiative_url)) #just for debugging
+    return redirect("/app/register#mailSent")
+    #return HttpResponse('We have sent you a confirmation mail. Please verify to join the IdeaScale Initiative ' + str(initiative_url)) #just for debugging
 
 def check_user(request): #puede que le agregue otro parametro que me diga si el id es de FB o de IS
     user_id = request.GET.get('user_id')
@@ -493,5 +505,6 @@ def write_permissions_fb(request):
     access_token = request.GET.get('access_token')
     user_id = request.GET.get('user_id')
     initiatiative_url = request.GET.get('initiative_url')
-    _save_user(user_id, access_token, initiatiative_url, 'write', None)
-    return redirect('/')
+    demo_data = _get_demo_data(request)
+    _save_user(user_id, access_token, initiatiative_url, 'write', demo_data)
+    return redirect('/app/register#joinFB')

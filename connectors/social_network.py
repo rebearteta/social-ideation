@@ -6,7 +6,6 @@ import os
 import inspect
 import abc
 import facebook
-#from facebook import get_access_token_from_code
 import logging
 import json
 import requests
@@ -285,13 +284,16 @@ class Facebook(SocialNetworkBase):
         return posts_array
 
     @classmethod
-    def publish_post(cls, app, message, msg_attachment=None, app_user=None):
+    #def publish_post(cls, app, message, app_user=None, msg_attachment=None):
+    def publish_post(cls, app, message, app_user=None):
         cls.authenticate(app, 'write', app_user)
-        if msg_attachment:
-            return cls.graph.put_object(app.community.external_id, 'feed', message,
-                                        attachment=msg_attachment)
-        else:
-            return cls.graph.put_object(app.community.external_id, 'feed', message)
+        #if msg_attachment:
+        #    return cls.graph.put_object(app.community.external_id, 'feed', message,
+        #                                attachment=msg_attachment)
+        #else:
+        logger.warning('rebe prueba => Message: {}'.format(message))
+        external_id = app.community.external_id
+        return cls.graph.put_object(external_id, 'feed', message)
 
     @classmethod
     def edit_post(cls, app, id_post, new_message, app_user=None):

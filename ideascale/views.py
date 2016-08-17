@@ -1,3 +1,4 @@
+# -*- coding: UTF-8 -*-
 import logging
 import os
 import six
@@ -7,10 +8,15 @@ from ideascale.models import Idea, Initiative, TestingParameter, Campaign, Clien
 from ideascale.serializers import IdeaSerializer, InitiativeSerializer, CampaignSerializer, AuthorSerializer, \
                                   CommentSerializer, VoteSerializer
 
+from app.models import Initiative as SnappInitiative, Campaign as SnappCampaign
+
 from dateutil.parser import parse
 
 from django.http import HttpResponse, Http404
 from django.utils import timezone
+from django.core.mail import EmailMessage
+from django.template import Context
+from django.template.loader import render_to_string, get_template
 
 from ideascaly.auth import AuthNonSSO
 from ideascaly.error import IdeaScalyError
@@ -86,6 +92,47 @@ def cru_author(author_id, initiative, author_info=None):
         author.save()
         return author
 
+def _send_notification_email(recipient_address, subject, msg):
+        to_email = [recipient_address]
+        from_email = 'Social Ideation App <hola@social-ideation.com>'
+        email = EmailMessage(subject, msg, to=to_email, from_email=from_email)
+        email.content_subtype = 'html'
+        email.send(fail_silently=True)
+        return True
+
+
+def _notify_new_campaign(initiative, campaign):
+    try:
+        snapp_initiative = SnappInitiative.objects.filter(url=initiative.url)[0]
+        community = snapp_initiative.social_network.all()[0].community
+        snapp_campaign = SnappCampaign.objects.filter(external_id = campaign.ideascale_id)[0]
+        for user in community.members.all():
+            ctx = {
+                'user': user.name,
+                'campaign': snapp_campaign.name,
+                'group_url': community.url,
+                'initiative_url': initiative.url,
+                'hashtag' : snapp_campaign.hashtag
+            }
+            html = u"""Hola {}, 
+                   <br><br>
+                   Quer&iacute;amos comentarte que la tem&aacute;tica {} ha sido agregada.
+                   <br><br> 
+                   <ul>
+                     <li>Para crear tus ideas desde el <a href="{}">Grupo de Facebook</a>debes usar el hashtag {}. </li>
+                     <li>Para crear tus ideas desde IdeaScale puedes acceder <a href="{}">aqu&iacute;</a>. </li>
+                   </ul>
+                   <br><br>
+                   Saludos,
+                   <br><br>
+                   El equipo de <a href="http://participaentueducacion.org">Participa en tu Educaci&oacute;n.</a>""".format(user.name, snapp_campaign.name, community.url, snapp_campaign.hashtag, initiative.url)
+            #html_msg = get_template('ideascale/email/email_new_campaign.html').render(Context(ctx))
+            #txt_msg = render_to_string('ideascale/email/email_new_campaign.txt', ctx)
+            ret = _send_notification_email(user.email, 'Participa en tu Educación', html)
+    except Exception as e:
+        _send_notification_email('marce.mmad@gmail.com', 'Participa en tu Educación. Fallo', str(e))
+
+
 
 def cu_campaigns(initiative):
     campaigns_raw = get_ideascale_data(initiative, 'get_campaigns')
@@ -97,6 +144,7 @@ def cu_campaigns(initiative):
         except Campaign.DoesNotExist:
             campaign = Campaign(ideascale_id=campaign_raw.id, name=campaign_raw.name, initiative=initiative)
             campaign.save()
+            #_notify_new_campaign(initiative, campaign)
 
 
 def cru_campaign(campaign_id, initiative):
