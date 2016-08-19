@@ -55,6 +55,8 @@ hitting the API of Facebook (3). The ideas and comments gathered from the IdeaSc
 posted *on behalf of the Facebook users* to the Facebook groups associated with the initiatives by calling the 
 corresponding Facebook API function (4).
 
+The ideas and comments deleted on the Facebook group are deleted too on IdeaScale by calling the corresponding API function. On the other hand, IdeaScale doesn't provide the option delete ideas nor comments, only administrators of the initiative can do this. So if the administrator delete ideas or comments on IdeaScale, they will be deleted too on the Facebook group only if they have been posted by the Social Ideation App on behalf of the Facebook users.
+
 Installation
 ------------
 
@@ -119,19 +121,18 @@ Getting started
  11. Update IdeaScale connector token (*Home->Connectors->IdeaScale*) The correct token should be located in the table 
 authtoken_token (user_id = 1)
 
- 12. Create a consultation platform choosing IdeaScale as the connector (*Home->App->Consultation platforms->Add*) 
+ 12. Create a consultation platform (*Home->App->Consultation platforms->Add*) choosing IdeaScale as the connector  
 
- 13. Import the consultation platform initiatives. Select the new consultation platform in *Home->App->Consultation Platforms* 
-and choose the option **'Get Initiatives'** from the **Action menu** located on the top of the list.
+ 13. Import the consultation platform initiatives. Select the new consultation platform in (*Home->App->Consultation Platforms*) 
+and choose the option **'Get Initiatives'** from the **Action menu** located on the top of the list
 
  14. Obtain Facebook OAuth token. Go to [Graph API Explorer](https://developers.facebook.com/tools/explorer/) and 
 in the application drop down select the app created in Step 4. Click Get Access Token; in permissions popup go to 
 extended permissions tab and select **publish_actions**. 
 
- 15. Create a social network app choosing Facebook as the connector, setting the **app id**, **app secret**, **app access token** (app id|app secret) and  the **redirect uri ** (that matches the *Site URL*) of the created Facebook App. (*Home->App->Social network apps->Add*)
+ 15. Create a social network app (*Home->App->Social network apps->Add*) choosing Facebook as the connector, setting the **app id**, **app secret**, **app access token** (app id|app secret) and  the **redirect uri** (that matches the *Site URL*) of the created Facebook App in Step 4
 
- 16.  Create a social network app user, setting in the field access token the previously obtained access token in Step 14
-(*Home->App->Social network app users->Add*)
+ 16.  Create a social network app user (*Home->App->Social network app users->Add*) setting in the field access token the previously obtained access token in Step 14
 
  17. Create a social network app community (*Home->App->Social network app communities->Add*) and put the user created in
 Step 15 as the admin
