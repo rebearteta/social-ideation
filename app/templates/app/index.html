@@ -3,21 +3,26 @@
 {% load i18n %}
 
 {% block script %}
-
-
 {% endblock %}
 
 
 
 {% block main %}
+
+
 <!-- Nav -->
    <nav id="nav">
        <ul class="container" style="max-width: none;">
          <!-- <li><a href="#descripcion">Descripción</a></li> -->
+          <!--
+          <li><a href="#como">¿Cómo participar?</a></li>
+          -->
+          <li><a href="http://www.dei.uc.edu.py/proyectos/participa/" target="_blank" style="color:#43B3E7;">Proyecto Participa</a></li>
           <li><a href="#tematicas">Temáticas</a></li>
           <li><a href="#ideas_populares">Ideas Más Votadas</a></li>
           <li><a href="#ideas_recientes">Ideas Recientes</a></li>
           <li><a href="#organizan">Organizadores</a></li>
+          <li><a href="#contacto">Contacto</a></li>
        </ul>
    </nav>
 
@@ -28,27 +33,78 @@
                    <div class="12u 12u(mobile)">
                        <header>
                           <h1> <strong> Participa en tu Educación </strong></h1>
+<!--
                           <p>Participa en tu educación es un espacio que promueve la participación ciudadana en la búsqueda colectiva de soluciones a problemas urgentes de nuestra educación paraguaya</p>
+-->
+                          <p> 
+                             Participa en tu educación es un espacio de participación ciudadana donde queremos idear juntos soluciones para los desafíos de nuestra educación
+                          </p>
                        </header>
                    </div>
                </div>
                <div class="row">
                     <div class="12u 12u(mobile)">
+                        <a href="#como" class="button big scrolly">¿Cómo? </a>
+                    </div>
+               </div>
+       </article>
+   </div>
+
+   <div class="wrapper style3">
+       <article id="como">
+                <header>
+                   <h2>¿Cómo puedo participar?</h2>
+                </header>
+              
+               
+                <div class="container" style="max-width: none;">
+                    <div class="row">
+                        <div class="4u 12u(mobile)">
+                            <section class="box style1" style="height: 480px">
+                                    <!--<span class="icon featured fa-facebook-official"></span>-->
+                                    <span class="icon featured"><img src="/static/img/fb_is.png"></span>
+                                    <h3>Canales</h3>
+                                    <p>
+                                      Existen dos canales desde los cuales puedes participar en Participa en tu Educación. Puedes optar entre participar desde un grupo de Facebook, o bien, desde una página dedicada en la plataforma IdeaScale.
+                                    </p>
+                            </section>
+                       </div>
+                       <div class="4u 12u(mobile)">
+                           <section class="box style1" style="height: 480px">
+                                   <span class="icon featured fa-sign-in "></span>
+                                   <h3>Registro</h3>
+                                   <p>
+                                    Haz click en <b>Unirme</b> y serás dirigido al formulario de registro, allí completa tus datos y presiona el botón <b>Registrarme</b>. Tendrás que escoger cuál será tu canal de participación.
+                                   </p>
+                           </section>
+                       </div>
+                       <div class="4u 12u(mobile)">
+                           <section class="box style1" style="height: 480px">
+                                   <span class="icon featured fa-lightbulb-o"></span>
+                                   <!--
+                                   <span class="icon featured fa-comments-o"></span>
+                                   <span class="icon featured fa-check-square-o"></span>
+                                   -->
+                                   <h3>Contribución</h3>
+                                   <p>
+                                    Una vez que te hayas registrado, puedes ingresar al canal de participación que escogiste y desde allí <b>Proponer</b> tus propias ideas de solución, <b>Comentar</b> las ideas de los demás participantes, y <b>Votar</b> por aquellas que más te agradan.
+                                   </p>
+                           </section>
+                       </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="12u 12u(mobile)">
                         <a href="/app/register" class="button big scrolly">Unirme</a>
                     </div>
                </div>
-<!--
-               <div class="row">
-                    <div class="8u 12u(mobile)">
-                        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Morbi laoreet non massa id vestibulum. Proin dui mauris, fringilla eget erat a, tempus sodales augue. Mauris nec leo vel nisl scelerisque laoreet nec quis ligula. Vivamus est elit, hendrerit et tincidunt sit amet, dignissim a tortor. Pellentesque dignissim diam velit, at maximus odio dictum quis. Suspendisse cursus leo sit amet velit malesuada, non efficitur nisl ultrices. Donec malesuada euismod accumsan. Vestibulum posuere interdum magna, et rhoncus urna efficitur nec. Fusce venenatis, urna ac malesuada laoreet, ante neque sagittis massa, eget efficitur tortor nibh eu ante. Aliquam quis metus et purus sodales tincidunt tincidunt at nunc. Suspendisse potenti.</p>
-                        <a href="/app/register_v1" class="button big scrolly">Ingresar</a>
-                    </div>
-                    <div class="4u 12u(mobile)">
-                        <span class="image fit"><img src="/static/img/pic00.jpg" alt="" /></span>
-                    </div>
-               </div> -->
-       </article>
-   </div>
+<!--                                    <footer>
+                                                <p>Lorem ipsum dolor sit sapien vestibulum ipsum primis?</p>
+                                                <a href="#ideas_populares" class="button big scrolly">See some of my recent work</a>
+                                        </footer> -->
+      </article>
+  </div>
+
 
 <!-- Work -->
    <div class="wrapper style2">
@@ -59,7 +115,7 @@
                 <div class="container" style="max-width: none;">
                     <div class="row">
                         <div class="4u 12u(mobile)">
-                            <section class="box style1"style="height: 580px">
+                            <section class="box style1" style="height: 480px">
                                     <span class="icon featured fa-institution"></span>
                                     <h3>Infraestructura Educativa</h3>
                                     <p>
@@ -68,7 +124,7 @@
                             </section>
                        </div>
                        <div class="4u 12u(mobile)">
-                           <section class="box style1"style="height: 580px">
+                           <section class="box style1" style="height: 480px">
                                    <span class="icon featured fa-graduation-cap"></span>
                                    <h3>Formación <br> Docente</h3>
                                    <p>
@@ -77,7 +133,7 @@
                            </section>
                        </div>
                        <div class="4u 12u(mobile)">
-                           <section class="box style1"style="height: 580px">
+                           <section class="box style1" style="height: 480px">
                                    <span class="icon featured fa-user-plus"></span>
                                    <h3>Asistencia <br>  Escolar</h3>
                                    <p>
@@ -105,7 +161,7 @@
                   <div class="row">
                       {% for idea in top %}
                          <div class="4u 12u(mobile)">
-                             <article class="box style2" style="height: 350px">
+                             <article class="box style2" style="height: 500px">
                                   <div>
                                      <h3><a href={{idea.url}}  style="color: #3ba8d3;">{{idea.title}}</a></h3>
                                      <p style="text-align: left;">
@@ -140,7 +196,7 @@
                   <div class="row">
                       {% for idea in recent %}
                          <div class="4u 12u(mobile)">
-                             <article class="box style2" style="height: 350px">
+                             <article class="box style2" style="height: 500px">
                                      <h3><a href={{idea.url}} style="color: #3ba8d3;">{{idea.title}}</a></h3>
                                      <p style="text-align: left;">
                                         <strong> {{idea.author}} </strong>  <br>
@@ -172,6 +228,7 @@
                  </div>
              </div>
              <div class="row">
+                 <!--
                  <div class="3u 12u(mobile)">
                      <span>
                           <a href="http://www.conacyt.gov.py" target="_blank">
@@ -179,8 +236,8 @@
                           </a>
                      </span>
                  </div>
-
-                 <div class="3u 12u(mobile)">
+                 -->
+                 <div class="4u 12u(mobile)">
 	             <span>
                           <a href="http://www.universidadcatolica.edu.py/" target="_blank">
                             <img src="/static/img/u_uca.jpg" alt="" class="logo">
@@ -188,7 +245,7 @@
                      </span>
                  </div>
 
-                 <div class="3u 12u(mobile)">
+                 <div class="4u 12u(mobile)">
                      <span>
                           <a href="http://www.dei.uc.edu.py/" target="_blank">
                             <img src="/static/img/dei_logo.jpeg" alt="" class="logo" />
@@ -197,7 +254,7 @@
                  </div>
 
 
-                 <div class="3u 12u(mobile)">
+                 <div class="4u 12u(mobile)">
                      <span>
                           <a href="http://www.unitn.it/en" target="_blank">
                             <img src="/static/img/unitn.jpg" alt="" class="logo"/>
@@ -207,6 +264,39 @@
              </div>
       </article>
   </div>
+
+  <div class="wrapper style3">
+      <article class="container" id="contacto" style="max-width: none;">
+             <div class="row">
+                 <div class="12u 12u(mobile)">
+                     <header>
+                        <h2>Contacto</h2>
+                     </header>
+                 </div>
+             </div>
+             <div class="row">
+                <div class="4u 12u(mobile)">
+  		   <section>
+		        <a href="https://www.google.com.py/maps/place/Universidad+Cat%C3%B3lica+Nuestra+Se%C3%B1ora+de+la+Asunci%C3%B3n/@-25.3264224,-57.6382384,15z/data=!4m5!3m4!1s0x0:0xa70c71f9d5efbaa9!8m2!3d-25.3237132!4d-57.6364473?hl=es" target="_blank" ><span class="icon featured fa-location-arrow" style="cursor: pointer;" ></span></a>
+			<p style="font-size: 11pt;">Universidad Católica "Nuestra Señora de la Asunción<br>Campus Universitario. Tte. Cantaluppi y Villalón<br>C.C. 1683. Asunción Paraguay </p>
+	           </section>
+		</div>
+		<div class="4u 12u(mobile)">
+ 	           <section>
+			<span class="icon featured fa-envelope"></span>
+		        <p style="font-size: 11pt;">E-mail:<br><a href="mailto:participa@uc.edu.py" class="button"> participa@uc.edu.py</a></p>			
+                   </section>
+		</div>
+		<div class="4u 12u(mobile)">
+ 		   <section>
+			<span class="icon featured fa-phone"></span>
+			<p style="font-size: 10pt;">Campus Universitario UCA:<br>+59521 334 650. Int 101</p>
+		   </section>
+		</div>
+             </div>
+      </article>
+  </div>
+
 
   <div class="wrapper style4" style="padding: 1em 5em 1em 5em; text-align: center; font-size: 70%;line-height: 1.1;">
           <div>

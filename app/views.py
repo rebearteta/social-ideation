@@ -202,18 +202,29 @@ def get_initiative_info():
     return {'initiative_name': initiative.name, 'initiative_url': initiative.url,
             'fb_group_url': initiative.social_network.all()[0].community.url}
 
-def _get_recent_ideas ():
-    recent_ideas = Idea.objects.filter(sync=True).order_by('-datetime')[:3]
+
+def _get_recent_ideas (n_ideas = 3):
+    ideas = Idea.objects.all().exclude(sn_id=None, cp_id=None)
+    for idea in ideas:
+        other_positive = int(idea.payload.split(',')[0].split('=')[1])
+        idea.positive_votes = idea.positive_votes + other_positive
+    recent_ideas = sorted(ideas, key=lambda x: x.datetime, reverse=True)[0:n_ideas]
     for idea in recent_ideas:
         if idea.title == '' or idea.title == None:
             idea.title = ' '.join(idea.text.split()[:5])
+        idea.text = idea.text[0:175] + '...'
     return recent_ideas
 
-def _get_top_ideas ():
-    top_ideas = Idea.objects.filter(sync=True).order_by('-positive_votes')[:3]
+def _get_top_ideas (n_ideas = 3): 
+    ideas = Idea.objects.all().exclude(sn_id=None, cp_id=None)
+    for idea in ideas:
+        other_positive = int(idea.payload.split(',')[0].split('=')[1])
+        idea.positive_votes = idea.positive_votes + other_positive
+    top_ideas = sorted(ideas, key=lambda x: x.positive_votes, reverse=True)[0:n_ideas]
     for idea in top_ideas:
         if idea.title == '' or idea.title == None:
             idea.title = ' '.join(idea.text.split()[:5])
+        idea.text = idea.text[0:175] + '...'
     return top_ideas
 
 def _get_campaigns ():
@@ -245,8 +256,8 @@ def index(request):
     context = get_initiative_info()
     form = SignInForm()
     context['form'] = form
-    context['top'] = _get_top_ideas()
-    context['recent'] = _get_recent_ideas()
+    context['top'] = _get_top_ideas(3)
+    context['recent'] = _get_recent_ideas(3)
     context['campaigns'] = _get_campaigns()
     return render(request, 'app/index.html', context)
 
@@ -275,8 +286,8 @@ def index_v1(request):
     context = get_initiative_info()
     form = SignInForm()
     context['form'] = form
-    context['top'] = _get_top_ideas()
-    context['recent'] = _get_recent_ideas()
+    context['top'] = _get_top_ideas(3)
+    context['recent'] = _get_recent_ideas(3)
     context['campaigns'] = _get_campaigns()
     return render(request, 'app/index-v1.html', context)
 

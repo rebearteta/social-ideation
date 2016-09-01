@@ -12,7 +12,7 @@ CELERY_SEND_TASK_ERROR_EMAILS = True
 CELERYBEAT_SCHEDULE = {
     'sync-every-5-minutes': {
         'task': 'app.tasks.synchronize_content',
-        'schedule': timedelta(minutes=2)
+        'schedule': timedelta(minutes=5)
     },
 }
 
@@ -33,7 +33,7 @@ SECRET_KEY = 'hzv-n=nsh^2l8(=g3cr5$+oma88qz6vt3^arn4ezhtioztglfm'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['participaentueducacion.org.py','www.participaentueducacion.org.py', '159.203.77.35', 'ubuntu-4gb-nyc3-01']
 
 
 # Application definition
@@ -86,15 +86,17 @@ WSGI_APPLICATION = 'social_ideation.wsgi.application'
 #For email
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_USE_TLS = True
-EMAIL_HOST = ''
-EMAIL_HOST_USER = ''
-EMAIL_HOST_PASSWORD = ''
-EMAIL_PORT = 
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_HOST_USER = 'participa@uc.edu.py'
+EMAIL_HOST_PASSWORD = '***REMOVED***'
+EMAIL_PORT = 587
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
 
 ADMINS = (
-    ('Jorge Saldivar', 'jorgesaldivar@gmail.com'),
+    #('Jorge Saldivar', 'jorgesaldivar@gmail.com'),
+    ('Marcelo Alcaraz', 'marcelo.alcaraz@uc.edu.py'),
+    ('Rebeca Arteta', 'rebeca.arteta@uc.edu.py'),
 )
 
 
@@ -105,9 +107,9 @@ ADMINS = (
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': '',
-        'USER': '',
-        'PASSWORD': '',
+        'NAME': 'social_ideation',
+        'USER': 'participa',
+        'PASSWORD': '***REMOVED***',
         'HOST': '127.0.0.1',
         'PORT': '3306',
         'DEFAULT_CHARSET': 'utf-8'

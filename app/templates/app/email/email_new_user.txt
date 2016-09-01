@@ -1,0 +1,15 @@
+Hola {{ author }},
+
+Gracias por unirte a la iniciativa Participa en tu Educación, estamos seguros que tus opiniones serán muy valiosas para ir delineando ideas que apunten a mejorar nuestra educación.
+
+Esta iniciativa es parte de una investigación que estamos desarrollando en la Universidad Católica y quisiéramos pedirte que nos ayudes con nuestro proyecto completando una encuesta que no te llevará más de 5 minutos hacerlo.
+
+Ir a la encuesta
+
+Cualquier consulta no dudes en escribirnos a este correo.
+
+Desde ya muchas gracias,
+
+Saludos.
+
+El equipo de Participa en tu Educación.
