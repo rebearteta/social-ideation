@@ -92,7 +92,7 @@ EMAIL_HOST_PASSWORD = ''
 EMAIL_PORT = 587
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
-
+# Administrators
 ADMINS = (
     #('Jorge Saldivar', 'jorgesaldivar@gmail.com'),
     ('Marcelo Alcaraz', 'marcelo.alcaraz@uc.edu.py'),
