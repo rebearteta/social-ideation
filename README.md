@@ -62,13 +62,17 @@ Installation
 
  1. Clone the repository `git clone https://github.com/joausaga/social-ideation.git`
 
- 2. Go inside the repository folder and execute `pip install -r requirements.txt` to install dependencies
+ 2. Go inside the repository folder and execute `pip install -r requirements.txt` to install dependencies.
+    If an error occurs during the installation, it might be because some of these resons:
+    a) Package *python-dev* is missing
+    b) Package *libmysqlclient-dev* is missing
+    c) The environment variables *LC_ALL* and/or *LC_CTYPE* are not defined or don't have a valid value
 
  3. Clone Facebook API client library `git clone https://github.com/pythonforfacebook/facebook-sdk`
 
  4. Go inside Facebook API client library and install it `python setup.py install`
 
- 5. Create a mysql database
+ 5. Create a mysql database. Make sure your database collation is set to UTF-8, if not, edit the script *fix_database_to_utf8.py* and set the *user* and *passwd* parameters of your database and then run the script `python fix_database_to_utf8.py`
 
  6. Set the configuration parameters of the database in social-ideation/settings.py
 
