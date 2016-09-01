@@ -55,7 +55,7 @@ hitting the API of Facebook (3). The ideas and comments gathered from the IdeaSc
 posted *on behalf of the Facebook users* to the Facebook groups associated with the initiatives by calling the 
 corresponding Facebook API function (4).
 
-The ideas and comments deleted on the Facebook group are deleted too on IdeaScale by calling the corresponding API function. On the other hand, IdeaScale doesn't provide the option delete ideas nor comments, only administrators of the initiative can do this. So if the administrator delete ideas or comments on IdeaScale, they will be deleted too on the Facebook group only if they have been posted by the Social Ideation App on behalf of the Facebook users.
+The ideas and comments deleted on the Facebook group are deleted too on IdeaScale by calling the corresponding API function. On the other hand, IdeaScale doesn't provide the option delete ideas nor comments, only administrators of the initiative can do this. So, if the administrator deletes ideas or comments on IdeaScale, they will be deleted too on the Facebook group only if they have been posted by the Social Ideation App on behalf of the Facebook users.
 
 Installation
 ------------

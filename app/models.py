@@ -16,6 +16,7 @@ class ParticipaUser(models.Model):
     #age = models.CharField(max_length=20, choices=choices.GRUPOS_ETARIOS)
     city = models.CharField(max_length=20, choices=choices.CIUDADES)
     sex = models.CharField(max_length=10, choices=choices.SEXOS) 
+    welcome_msg_sent = models.BooleanField(default=False)
     def __unicode__(self):
         return self.first_name + ' ' + self.last_name + ' - '+ self.email
 

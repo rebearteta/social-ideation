@@ -216,7 +216,7 @@ def _prepare_email_msg(content, author_name_utf8, type_content, snapp, type_emai
     else:
         url = content.initiative.url   
         url_name = 'IdeaScale'
-        pub_url = '{}/a/dtd/{}-41051'.format(content.initiative.url, content.cp_id)
+        pub_url = '{}/a/dtd/{}-41191'.format(content.initiative.url, content.cp_id)
 
     ctx = {
         'author': author_name_utf8,
@@ -266,13 +266,17 @@ def _prepare_email_msg(content, author_name_utf8, type_content, snapp, type_emai
 
 
 def _send_notification_email(recipient_address, subject, msg):
+    try:
         to_email = [recipient_address]
         from_email = 'Participa en tu Educación <participa@uc.edu.py>'
         email = EmailMessage(subject, msg, to=to_email, from_email=from_email)
-       # email = EmailMessage(subject, msg, to=to_email)
+        #email = EmailMessage(subject, msg, to=to_email)
         email.content_subtype = 'html'
         email.send(fail_silently=True)
         return True
+    except Exception as e:
+        return False
+            
 
 
 def is_user_first_content(content, type_content = 'idea'):
@@ -351,11 +355,11 @@ def do_create_update_vote(platform, initiative, vote, source):
             if vote_obj.value != vote['value']:
                 vote_obj.value = vote['value']
                 vote_obj.has_changed = True
-                _send_notification_email('marcelo.alcaraz@uc.edu.py', 'cambio voto cp', str(vote_obj.value) + ' --- ' +str(vote['value']))
+                #_send_notification_email('marcelo.alcaraz@uc.edu.py', 'cambio voto cp', str(vote_obj.value) + ' --- ' +str(vote['value']))
             vote_obj.save()
-        else:
-            if source == 'consultation_platform':
-                _send_notification_email('marcelo.alcaraz@uc.edu.py', 'nuevo voto cp', str(vote_obj.value) + ' --- ' +str(vote['value']))
+        #else:
+        #    if source == 'consultation_platform':
+        #        _send_notification_email('marcelo.alcaraz@uc.edu.py', 'nuevo voto cp', str(vote_obj.value) + ' --- ' +str(vote['value']))
 
         # a notification email must be sent only if the parent idea (or comment) comes from facebook
         fb_parent = False
@@ -1513,7 +1517,7 @@ def notify_new_campaigns(initiative):
             campaign.notified = True
             campaign.save()
     except Exception as e:
-        logger.info('Error when try to notify new campaign')
+        logger.info('Error when try to notify new campaign: ' + str(e))
 
 def count_other_platform_votes():
     ideas = Idea.objects.all()
@@ -1531,4 +1535,15 @@ def count_other_platform_votes():
         comment.payload = msg
         comment.save()
 
-
+def notify_new_users():
+    try:
+        unnotified_users = ParticipaUser.objects.filter(welcome_msg_sent=False)
+        for user in unnotified_users:
+            ctx = { 'author' : user.first_name + ' ' + user.last_name }
+            html_msg = get_template('app/email/email_new_user.html').render(Context(ctx))
+            txt_msg = render_to_string('app/email/email_new_user.txt', ctx)
+            ret = _send_notification_email(user.email, 'Participa en tu Educación', html_msg)
+            user.welcome_msg_sent = True
+            user.save()
+    except Exception as e:
+        logger.info('Error when try to notify new users: ' + str(e))
