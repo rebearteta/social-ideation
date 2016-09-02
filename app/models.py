@@ -14,7 +14,7 @@ class ParticipaUser(models.Model):
     #new_attributes
     birthdate = models.DateField()
     #age = models.CharField(max_length=20, choices=choices.GRUPOS_ETARIOS)
-    city = models.CharField(max_length=20, choices=choices.CIUDADES)
+    city = models.CharField(max_length=50, choices=choices.CIUDADES)
     sex = models.CharField(max_length=10, choices=choices.SEXOS) 
     welcome_msg_sent = models.BooleanField(default=False)
     def __unicode__(self):
