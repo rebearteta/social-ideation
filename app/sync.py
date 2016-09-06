@@ -480,9 +480,9 @@ def _do_edit_idea_sn(sn_app, idea, text_to_sn, app_user=None):
 
 def is_user_community_member(sn_app, app_user):
     app_community = sn_app.community
-    for reg_member in app_community.members.all():
-        if reg_member == app_user:
-            return True
+    #for reg_member in app_community.members.all():
+    #    if reg_member == app_user:
+    #        return True
     params = {'app': sn_app, 'group_id': sn_app.community.external_id}
     members = call_social_network_api(sn_app.connector, 'get_community_member_list', params)
     for member in members:
@@ -1517,7 +1517,7 @@ def notify_new_campaigns(initiative):
             campaign.notified = True
             campaign.save()
     except Exception as e:
-        logger.info('Error when try to notify new campaign: ' + str(e))
+        logger.error('Error when try to notify new campaign: ' + str(e))
 
 def count_other_platform_votes():
     ideas = Idea.objects.all()
@@ -1546,4 +1546,22 @@ def notify_new_users():
             user.welcome_msg_sent = True
             user.save()
     except Exception as e:
-        logger.info('Error when try to notify new users: ' + str(e))
+        logger.error('Error when try to notify new users: ' + str(e))
+
+def notify_join_group():
+    try:
+        users = SocialNetworkAppUser.objects.all()
+        for user in users:
+            if not is_user_community_member(user.snapp, user):
+	        now = timezone.now()
+                delta = now - user.registration_timestamp
+                if delta.total_seconds <= 5*60:
+                    logger.info("4sep invitation to join group sent to " + user.name)
+                    ctx = { 'author' : user.name , 'group_url': user.snapp.community.url}
+                    html_msg = get_template('app/email/email_invitation_join_group.html').render(Context(ctx))
+                    txt_msg = render_to_string('app/email/email_invitation_join_group.txt', ctx)
+                    ret = _send_notification_email(user.email, 'Participa en tu Educación', html_msg)
+            else:
+                logger.info('4sep this user is a community member ' + user.name)
+    except Exception as e:
+        logger.error('4sep Error when try to notify users to join group: ' + str(e))

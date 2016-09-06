@@ -35,6 +35,7 @@ class SocialNetworkAppUser(models.Model):
     #city = models.CharField(max_length=20, choices=choices.CIUDADES, blank=True)
     #sex = models.CharField(max_length=10, choices=choices.SEXOS, blank=True) 
     participa_user = models.OneToOneField(ParticipaUser, null=True, blank=True)
+    registration_timestamp = models.DateTimeField(auto_now_add=True)
     
     def __unicode__(self):
         if self.name:
