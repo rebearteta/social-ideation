@@ -1556,15 +1556,15 @@ def notify_join_group():
             if not is_user_community_member(user.snapp, user):
 	        now = timezone.now()
                 delta = now - user.registration_timestamp
-                #logger.info("12sep - User registration timestamp: " + str(user.registration_timestamp))
-                #logger.info("12sep - Now timestamp: " + str(now))
-                #logger.info("12sep - Dif: " + str(delta))
+                logger.info("12sep - User registration timestamp: " + str(user.registration_timestamp))
+                logger.info("12sep - Now timestamp: " + str(now))
+                logger.info("12sep - Dif: " + str(delta))
                 if delta.total_seconds() <= 5*60:
                     logger.info("12sep Invitation to join group sent to " + convert_to_utf8_str(user.name))
                     ctx = { 'author' : user.name , 'group_url': user.snapp.community.url}
                     html_msg = get_template('app/email/email_invitation_join_group.html').render(Context(ctx))
                     txt_msg = render_to_string('app/email/email_invitation_join_group.txt', ctx)
-                    ret = _send_notification_email(user.email, 'Participa en tu Educación', html_msg)
+                    #ret = _send_notification_email(user.email, 'Participa en tu Educación', html_msg)
             #else:
             #    logger.info('This user is a community member ' + user.name)
     except Exception as e:
