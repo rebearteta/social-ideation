@@ -268,7 +268,7 @@ def _prepare_email_msg(content, author_name_utf8, type_content, snapp, type_emai
 def _send_notification_email(recipient_address, subject, msg):
     try:
         to_email = [recipient_address]
-        from_email = 'Participa en tu Educación <participa@uc.edu.py>'
+        from_email = 'Amazon - Participa en tu Educación <participa@uc.edu.py>'
         email = EmailMessage(subject, msg, to=to_email, from_email=from_email)
         #email = EmailMessage(subject, msg, to=to_email)
         email.content_subtype = 'html'
@@ -485,6 +485,7 @@ def is_user_community_member(sn_app, app_user):
     #        return True
     params = {'app': sn_app, 'group_id': sn_app.community.external_id}
     members = call_social_network_api(sn_app.connector, 'get_community_member_list', params)
+    logger.info('12sep members: ' + str(members))
     for member in members:
         if member == app_user.external_id:
             app_community.members.add(app_user)
@@ -1555,8 +1556,11 @@ def notify_join_group():
             if not is_user_community_member(user.snapp, user):
 	        now = timezone.now()
                 delta = now - user.registration_timestamp
-                if delta.total_seconds <= 5*60:
-                    logger.info("Invitation to join group sent to " + user.name)
+                #logger.info("12sep - User registration timestamp: " + str(user.registration_timestamp))
+                #logger.info("12sep - Now timestamp: " + str(now))
+                #logger.info("12sep - Dif: " + str(delta))
+                if delta.total_seconds() <= 5*60:
+                    logger.info("12sep Invitation to join group sent to " + convert_to_utf8_str(user.name))
                     ctx = { 'author' : user.name , 'group_url': user.snapp.community.url}
                     html_msg = get_template('app/email/email_invitation_join_group.html').render(Context(ctx))
                     txt_msg = render_to_string('app/email/email_invitation_join_group.txt', ctx)

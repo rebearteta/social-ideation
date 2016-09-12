@@ -463,9 +463,18 @@ class Facebook(SocialNetworkBase):
         cls.authenticate(app)
         members_email = []
         member_list = cls.graph.get_connections(group_id, 'members')
-        print member_list
-        for member in member_list['data']:
-            members_email.append(member['id'])
+        #print member_list
+        #for member in member_list['data']:
+        #    members_email.append(member['id'])
+        #return members_email
+        while (True):
+            for member in member_list['data']:
+                members_email.append(member['id'])
+            try:    
+                member_list = requests.get(elements['paging']['next']).json()
+            except:
+                break
+
         return members_email
 
     @classmethod
