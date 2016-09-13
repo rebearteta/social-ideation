@@ -492,6 +492,23 @@ def is_user_community_member(sn_app, app_user):
             return True
     return False
 
+# the next two functions are an alternative to the function above. They make less api calls.
+def get_community_members_list(sn_app):
+    app_community = sn_app.community
+    params = {'app': sn_app, 'group_id': sn_app.community.external_id}
+    members = call_social_network_api(sn_app.connector, 'get_community_member_list', params)
+    logger.info('12sep members: ' + str(members))
+    return members
+
+def is_a_community_member(sn_app, app_user, members):
+    app_community = sn_app.community
+    for member in members:
+        if member == app_user.external_id:
+            app_community.members.add(app_user)
+            return True
+    return False
+
+
 
 def publish_idea_sn(idea, sn_app, mode=None):
     initiative = idea.initiative
@@ -1552,8 +1569,10 @@ def notify_new_users():
 def notify_join_group():
     try:
         users = SocialNetworkAppUser.objects.all()
+        snapp = SocialNetworkApp.objects.all()[0]
+        members = get_community_members_list(snapp)
         for user in users:
-            if not is_user_community_member(user.snapp, user):
+            if not is_a_community_member(user.snapp, user, members):
 	        now = timezone.now()
                 delta = now - user.registration_timestamp
                 logger.info("12sep - User registration timestamp: " + str(user.registration_timestamp))
