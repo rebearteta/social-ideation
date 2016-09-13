@@ -195,17 +195,18 @@
     <!-- Contact -->
       <div class="wrapper style2 first">
         <article id="registro" class="container 75%">
-          <h3> Ya tienes una cuenta?</h3>
+          <h3> Ya tienes una cuenta? </h3>
           <div>
               <div class="row 100%">
                   <div class="12u">
-                          <a class="btn btn-lg btn-primary" href="https://www.facebook.com/groups/979065645541360/" >
+                          <a class="btn btn-lg btn-primary" href="{{fb_group_url }}"
+                             style="margin-top: 10px; border-right: 10px; width:220px" >
                              <span style="padding-right:3px; padding-top: 3px; display:inline-block;">
                                    <img src="/static/img/fb_icon.png" class="logo-icon"></img>
                              </span> &nbsp;&nbsp; Ir al Grupo en FB
-                          </a> &nbsp;&nbsp;
+                          </a>
 
-                         <a class="btn btn-lg btn-warning" href="http://participaentueducacion.ideascale.com/">
+                         <a class="btn btn-lg btn-warning" href="{{ initiative_url }}" style="margin-top: 10px; width: 220px;" >
                              <span style="padding-right:3px; padding-top: 3px; display:inline-block;">
                                    <img src="/static/img/is_icon.png" class="logo-icon"></img>
                              </span> &nbsp;&nbsp; Ir a IdeaScale
@@ -274,13 +275,15 @@
 		<h3>Elige con qué plataforma ingresar</h3>
                     <div class="row 100%">
                       <div class="12u">
-                          <a class="btn btn-lg btn-primary" href="javascript:;" role="button" onclick="startConnect('{{ initiative_url }}'); return false;">
+                          <a class="btn btn-lg btn-primary" href="javascript:;" style="margin-top: 10px; border-right: 10px;" 
+                             role="button" onclick="startConnect('{{ initiative_url }}'); return false;">
                              <span style="padding-right:3px; padding-top: 3px; display:inline-block;">
                                    <img src="/static/img/fb_icon.png" class="logo-icon"></img>
                              </span> &nbsp;&nbsp;{% trans "Log in con Facebook" %}
-                          </a> &nbsp;&nbsp;
+                          </a>
 
-                         <a class="btn btn-lg btn-warning" href="javascript:;" role="button" onclick="IS_login('{{ initiative_url }}'); return false;">
+                         <a class="btn btn-lg btn-warning" href="javascript:;" style="margin-top: 10px;"
+                             role="button" onclick="IS_login('{{ initiative_url }}'); return false;">
                              <span style="padding-right:3px; padding-top: 3px; display:inline-block;">
                                    <img src="/static/img/is_icon.png" class="logo-icon"></img>
                              </span> &nbsp;&nbsp;{% trans "Log in con IdeaScale" %}
@@ -299,7 +302,7 @@
                     <div class="row 100%">
                       <div class="12u">
 
-                         <a class="button" href="http://participaentueducacion.ideascale.com/">Aceptar
+                         <a class="button" href="{{ initiative_url }}">Aceptar
                          </a>
                    </div>
               </div>
@@ -315,7 +318,7 @@
                     <div class="row 100%">
                       <div class="12u">
 
-                         <a class="button" href="https://www.facebook.com/groups/979065645541360/">Aceptar
+                         <a class="button" href="{{ fb_group_url }}">Aceptar
                          </a>
                    </div>
               </div>

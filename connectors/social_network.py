@@ -471,7 +471,7 @@ class Facebook(SocialNetworkBase):
             for member in member_list['data']:
                 members_email.append(member['id'])
             try:    
-                member_list = requests.get(elements['paging']['next']).json()
+                member_list = requests.get(member_list['paging']['next']).json()
             except:
                 break
 
