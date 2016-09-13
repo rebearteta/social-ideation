@@ -268,7 +268,7 @@ def _prepare_email_msg(content, author_name_utf8, type_content, snapp, type_emai
 def _send_notification_email(recipient_address, subject, msg):
     try:
         to_email = [recipient_address]
-        from_email = 'Amazon - Participa en tu Educación <participa@uc.edu.py>'
+        from_email = 'Participa en tu Educación <participa@uc.edu.py>'
         email = EmailMessage(subject, msg, to=to_email, from_email=from_email)
         #email = EmailMessage(subject, msg, to=to_email)
         email.content_subtype = 'html'
@@ -970,9 +970,9 @@ def _send_notification_comment(snapp, post, initiative, problem):
     for campaign in campaigns:
         campaign_counter += 1
         if campaign_counter == len(campaigns):
-            campaign_hashtags += '#{}'.format(convert_to_utf8_str(campaign.hashtag))
+            campaign_hashtags += '#{}'.format(campaign.hashtag)
         else:
-            campaign_hashtags += '#{}, '.format(convert_to_utf8_str(campaign.hashtag))
+            campaign_hashtags += '#{}, '.format(campaign.hashtag)
     with override(initiative.language):
         if problem == 'missing_hashtag':
             msg = _('Hi {}!, it seems you\'ve tried to submit an idea without specifying the hashtag of the '
