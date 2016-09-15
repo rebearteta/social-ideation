@@ -1,3 +1,4 @@
+# -*- coding: UTF-8 -*-
 from __future__ import absolute_import
 
 from app.models import ConsultationPlatform, Initiative, Idea, Comment, SocialNetworkApp, ParticipaUser
@@ -70,14 +71,14 @@ def pull_data():
         invalidate_filters = {'initiative': initiative, 'is_new': False}
         try:
             invalidate_initiative_content(invalidate_filters, {'exist_cp': False})
-            logger.info('Pulling content of the initiative {} from the platform {}'.format(initiative,
+            logger.info(u'Pulling content of the initiative {} from the platform {}'.format(initiative,
                                                                                            initiative.platform))
             _pull_content_consultation_platform(initiative.platform, initiative)
             for socialnetwork in initiative.social_network.all():
                 if not socialnetwork.subscribed_read_time_updates:
                     try:
                         invalidate_initiative_content(invalidate_filters, {'exist_sn': False})
-                        logger.info('Pulling content of the initiative {} from the platform {}'.format(initiative,
+                        logger.info(u'Pulling content of the initiative {} from the platform {}'.format(initiative,
                                                                                                        socialnetwork))
                         _pull_content_social_network(socialnetwork, initiative)
                     except Exception as e:
