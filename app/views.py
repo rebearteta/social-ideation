@@ -394,17 +394,10 @@ def _save_user(user_id, access_token, initiative_url, type_permission, demo_data
             #############################################################################
 
         except SocialNetworkAppUser.DoesNotExist:
-            #############################################################################
-            try:
-                participa_user = ParticipaUser.objects.get(email=demo_data['email'])
-            except ParticipaUser.DoesNotExist:
-                participa_user = ParticipaUser(**demo_data)
-                participa_user.save()
-            #############################################################################
             user_fb = Facebook.get_info_user(fb_app, user_id, access_token)
             new_app_user = {'email': user_fb['email'].lower(), 'snapp': fb_app, 'access_token': ret_token['access_token'],
                             'access_token_exp': calculate_token_expiration_time(ret_token['expiration']),
-                            'external_id': user_id, 'participa_user' : participa_user}
+                            'external_id': user_id}
             if type_permission == 'write':
                 new_app_user.update({'write_permissions': True})
             else:
@@ -415,6 +408,15 @@ def _save_user(user_id, access_token, initiative_url, type_permission, demo_data
                 new_app_user.update({'url': user_fb['url']})
             user = SocialNetworkAppUser(**new_app_user)
             user.save()
+            #############################################################################
+            try:
+                participa_user = ParticipaUser.objects.get(email=demo_data['email'])
+            except ParticipaUser.DoesNotExist:
+                participa_user = ParticipaUser(**demo_data)
+                participa_user.save()
+            user.participa_user = participa_user
+            user.save()
+            #############################################################################
     else:
         logger.warning('It could not be found the facebook app used to execute '
                        'the initiative {}'.format(initiative_url))

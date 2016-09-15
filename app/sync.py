@@ -485,7 +485,7 @@ def is_user_community_member(sn_app, app_user):
     #        return True
     params = {'app': sn_app, 'group_id': sn_app.community.external_id}
     members = call_social_network_api(sn_app.connector, 'get_community_member_list', params)
-    logger.info('12sep members: ' + str(members))
+    #logger.info('12sep members: ' + str(members))
     for member in members:
         if member == app_user.external_id:
             app_community.members.add(app_user)
@@ -1557,12 +1557,16 @@ def notify_new_users():
     try:
         unnotified_users = ParticipaUser.objects.filter(welcome_msg_sent=False)
         for user in unnotified_users:
-            ctx = { 'author' : user.first_name + ' ' + user.last_name }
-            html_msg = get_template('app/email/email_new_user.html').render(Context(ctx))
-            txt_msg = render_to_string('app/email/email_new_user.txt', ctx)
-            ret = _send_notification_email(user.email, 'Participa en tu Educación', html_msg)
-            user.welcome_msg_sent = True
-            user.save()
+            try:
+                snapp_user = SocialNetworkAppUser.objects.filter(participa_user = user)[0]
+                ctx = { 'author' : user.first_name + ' ' + user.last_name }
+                html_msg = get_template('app/email/email_new_user.html').render(Context(ctx))
+                txt_msg = render_to_string('app/email/email_new_user.txt', ctx)
+                ret = _send_notification_email(user.email, 'Participa en tu Educación', html_msg)
+                user.welcome_msg_sent = True
+                user.save()
+            except:
+                pass
     except Exception as e:
         logger.error('Error when try to notify new users: ' + str(e))
 
