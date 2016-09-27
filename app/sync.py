@@ -784,6 +784,17 @@ def _user_can_publish(content, author_name_utf8, sn_app, type_content):
                 return True
 
 
+def _is_in_black_list(author):
+    # The black list includes all author names whose publications should not be replicated on the CP
+    black_list = ['Marcelo Moisés Alcaraz Delgado', 'Participa PY']
+    if convert_to_utf8_str(author.screen_name) in black_list:
+        return True
+    if author.screen_name in black_list:
+        return True
+    
+    return False
+
+
 def publish_idea_cp(idea):
     initiative = idea.initiative
     template_idea_cp = '{}\n\n----------------\n\n'
@@ -791,6 +802,11 @@ def publish_idea_cp(idea):
     template_idea_cp += '\n' + _get_str_language(initiative.language, 'link')
     text_uf8 = convert_to_utf8_str(idea.text)
     author_name_utf8 = convert_to_utf8_str(idea.author.screen_name)
+
+    if _is_in_black_list(idea.author):
+        #logger.warning('This idea wont be published ' + text_utf8)
+        return
+
     text_cplatform = remove_hashtags(text_uf8)
 
     campaign = idea.campaign
@@ -853,6 +869,9 @@ def publish_comment_cp(comment):
     text_uf8 = convert_to_utf8_str(comment.text)
     author_name_utf8 = convert_to_utf8_str(comment.author.screen_name)
     text_cplatform = remove_hashtags(text_uf8)
+
+    if _is_in_black_list(comment.author):
+        return
 
     sn_source = comment.source_social.connector.name
     cplatform = initiative.platform
@@ -1109,7 +1128,16 @@ def save_sn_vote(sn_app, vote):
                        'Reason: The initiative could not be found'.format(vote))
         return None
 
+# To determine if an author is still active we check if he's still a member of the group
+def _author_still_active(author_id):
+    snapp = SocialNetworkApp.objects.all()[0]
+    members = get_community_members_list(snapp)
+    if author_id in members:
+        return True
+    return False
 
+
+#deletes an idea from the consultation platform
 def delete_post(post_id):
     try:
         idea_obj = Idea.objects.get(cp_id=post_id)
@@ -1117,15 +1145,34 @@ def delete_post(post_id):
         connector = platform.connector
         url_cb = get_url_cb(connector, 'delete_idea_cb')
         url = build_request_url(url_cb.url, url_cb.callback, {'idea_id': idea_obj.cp_id})
-        do_request(connector, url, url_cb.callback.method)
-        logger.info('The idea {} does not exists anymore and thus it was deleted from {}'.
+        # If the author's accounts is still active, that means he deleted his idea
+        # the app will delete the copy in the CP
+        if _author_still_active(idea_obj.author.external_id):
+            do_request(connector, url, url_cb.callback.method)
+            logger.info('The idea {} was deleted by its author and thus it was deleted from {}'.
                      format(idea_obj.id, platform))
-        _delete_obj(idea_obj)
+            _delete_obj(idea_obj)
+        else:
+            # If the author's account is not active, he deactivated his account and 
+            # the app will wait up to 10 days before deleting the copy in the CP
+            if idea_obj.deactivation_time == None:
+                idea_obj.deactivation_time = timezone.now()
+                idea_obj.save()
+            elapsed_inactive_time = timezone.now() - idea_obj.deactivation_time
+            if elapsed_inactive_time.total_seconds() > 10*24*60*60:
+                do_request(connector, url, url_cb.callback.method)
+                logger.info('The idea {} was deleted from {} because its author has deactivated his account more than 10 days ago'.
+                     format(idea_obj.id, platform))
+                _delete_obj(idea_obj)
+        #do_request(connector, url, url_cb.callback.method)
+        #logger.info('The idea {} does not exists anymore and thus it was deleted from {}'.
+        #             format(idea_obj.id, platform))
+        #_delete_obj(idea_obj)
         #idea_obj.delete()
     except Idea.DoesNotExist:
         logger.warning('The social network idea (id={}) could not be found in the system'.format(post_id))
 
-
+#deletes a comment from the consultation platform
 def delete_comment(comment_id):
     try:
         comment_obj = Comment.objects.get(cp_id=comment_id)
@@ -1133,10 +1180,25 @@ def delete_comment(comment_id):
         connector = platform.connector
         url_cb = get_url_cb(connector, 'delete_comment_cb')
         url = build_request_url(url_cb.url, url_cb.callback, {'comment_id': comment_obj.cp_id})
-        do_request(connector, url, url_cb.callback.method)
-        logger.info('The comment {} does not exists anymore and thus it was deleted from {}'.
+        # If the author's accounts is still active, that means he deleted his comment
+        # the app will delete the copy in the CP
+        if _author_still_active(comment_obj.author.external_id):
+            do_request(connector, url, url_cb.callback.method)
+            logger.info('The comment {} was deleted by its author and thus it was deleted from {}'.
                      format(comment_obj.id, platform))
-        _delete_obj(comment_obj)
+            _delete_obj(comment_obj)
+        else:
+            # If the author's account is not active, he deactivated his account and 
+            # the app will wait up to 10 days before deleting the copy in the CP
+            if comment_obj.deactivation_time == None:
+                comment_obj.deactivation_time = timezone.now()
+                comment_obj.save()
+            elapsed_inactive_time = timezone.now() - comment_obj.deactivation_time
+            if elapsed_inactive_time.total_seconds() > 10*24*60*60:
+                do_request(connector, url, url_cb.callback.method)
+                logger.info('The comment {} was deleted from {} because its author has deactivated his account more than 10 days ago'.
+                     format(comment_obj.id, platform))
+                _delete_obj(comment_obj)
         #comment_obj.delete()
     except Comment.DoesNotExist:
         logger.warning('The social network comment (id={}) could not be found in the system'.format(comment_id))
@@ -1558,7 +1620,7 @@ def notify_new_users():
         unnotified_users = ParticipaUser.objects.filter(welcome_msg_sent=False)
         for user in unnotified_users:
             try:
-                snapp_user = SocialNetworkAppUser.objects.filter(participa_user = user)[0]
+                #snapp_user = SocialNetworkAppUser.objects.filter(participa_user = user)[0]
                 ctx = { 'author' : user.first_name + ' ' + user.last_name }
                 html_msg = get_template('app/email/email_new_user.html').render(Context(ctx))
                 txt_msg = render_to_string('app/email/email_new_user.txt', ctx)
@@ -1579,11 +1641,11 @@ def notify_join_group():
             if not is_a_community_member(user.snapp, user, members):
 	        now = timezone.now()
                 delta = now - user.registration_timestamp
-                logger.info("12sep - User registration timestamp: " + str(user.registration_timestamp))
-                logger.info("12sep - Now timestamp: " + str(now))
-                logger.info("12sep - Dif: " + str(delta))
+                logger.info("User registration timestamp: " + str(user.registration_timestamp))
+                logger.info("Now timestamp: " + str(now))
+                logger.info("Dif: " + str(delta))
                 if delta.total_seconds() <= 5*60:
-                    logger.info("12sep Invitation to join group sent to " + convert_to_utf8_str(user.name))
+                    logger.info("Invitation to join group sent to " + convert_to_utf8_str(user.name))
                     ctx = { 'author' : user.name , 'group_url': user.snapp.community.url}
                     html_msg = get_template('app/email/email_invitation_join_group.html').render(Context(ctx))
                     txt_msg = render_to_string('app/email/email_invitation_join_group.txt', ctx)
@@ -1592,3 +1654,20 @@ def notify_join_group():
             #    logger.info('This user is a community member ' + user.name)
     except Exception as e:
         logger.error('Error when try to notify users to join group: ' + str(e))
+
+def check_reactivated_accounts_activity():
+    try:
+        snapp = SocialNetworkApp.objects.all()[0]
+        members = get_community_members_list(snapp)
+        deactivated_ideas = Idea.objects.all().exclude(deactivation_time = None)
+        for idea in deactivated_ideas:
+            if idea.author.external_id in members:
+                idea.deactivation_time = None
+                idea.save()
+        deactivated_comments = Comment.objects.all().exclude(deactivation_time = None)
+        for comment in deactivated_comments:
+             if comment.author.external_id in members:
+                 comment.deactivation_time = None
+                 comment.save()
+    except Exception as e:
+        logger.error('Error when trying to check reactivated accounts activity: ' + str(e))

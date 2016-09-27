@@ -183,7 +183,8 @@ class BaseContent(models.Model):
     exist_cp = models.BooleanField(default=False)
     exist_sn = models.BooleanField(default=False)
     sync = models.BooleanField(default=False)
-
+    # Extra datetime field used when the author deactivates its account.
+    deactivation_time = models.DateTimeField(null=True)
     class Meta:
         abstract = True
 
