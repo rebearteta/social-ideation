@@ -1097,6 +1097,7 @@
 
 		a:hover {
 			color: #43bff0 !important;
+			text-decoration: none;
 		}
 
 		a img {

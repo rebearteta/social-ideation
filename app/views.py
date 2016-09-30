@@ -444,7 +444,7 @@ def login_fb(request):
     initiatiative_url = request.GET.get('initiative_url')
     demo_data = _get_demo_data(request)
     _save_user(user_id, access_token, initiatiative_url, 'read', demo_data)
-    return redirect('/app/register#askWRperm')
+    return redirect('/app#askWRperm')
 
 def _create_IS_user (initiative_url, demo_data):
     initiative = Initiative.objects.get(url=initiative_url)
@@ -480,7 +480,7 @@ def login_IS(request):
     # After the new user is created in our DB a register-confirmation mail must be sent through the API
     # a session value (cookie) should be set here probably to recognize this user.
     
-    return redirect("/app/register#mailSent")
+    return redirect("/app#mailSent")
     #return HttpResponse('We have sent you a confirmation mail. Please verify to join the IdeaScale Initiative ' + str(initiative_url)) #just for debugging
 
 def check_user(request): #puede que le agregue otro parametro que me diga si el id es de FB o de IS
@@ -520,4 +520,4 @@ def write_permissions_fb(request):
     initiatiative_url = request.GET.get('initiative_url')
     demo_data = _get_demo_data(request)
     _save_user(user_id, access_token, initiatiative_url, 'write', demo_data)
-    return redirect('/app/register#joinFB')
+    return redirect('/app#joinFB')
