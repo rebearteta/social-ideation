@@ -1857,7 +1857,7 @@
 			}
 
 				.wrapper.first {
-					padding-top: 12em;
+					padding-top: 5em;
 				}
                                 .wrapper.style4 p{
                                         margin-bottom: 1em;
@@ -2262,10 +2262,10 @@ form select:focus {
 }
 
 .modalDialog > div {
-	width: 70%;
+	/*width: 70%;*/
         height: auto;
 	position: relative;
-	margin: 10% auto;
+	margin: 10%;
 	padding: 2%;
 	border-radius: 10px;
 	/*
