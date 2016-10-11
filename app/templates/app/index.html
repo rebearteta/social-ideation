@@ -21,8 +21,26 @@
            } 
            //alert('Query Variable ' + variable + ' not found');
            return "False";
-      }
-       
+       }
+       function showFormFields() {
+           var platform = document.getElementById('id_platform').value;
+           if(platform == 'Facebook'){
+               document.getElementById('id_birthdate').style.display = 'block'
+               document.getElementById('id_sex').style.display = 'block'
+               document.getElementById('id_city').style.display = 'block'
+               document.getElementById('id_label_birthdate').style.display = 'block'
+               document.getElementById('id_label_sex').style.display = 'block'
+               document.getElementById('id_label_city').style.display = 'block'
+           } else {
+               document.getElementById('id_birthdate').style.display = 'none'
+               document.getElementById('id_sex').style.display = 'none'
+               document.getElementById('id_city').style.display = 'none'
+               document.getElementById('id_label_birthdate').style.display = 'none'
+               document.getElementById('id_label_sex').style.display = 'none'
+               document.getElementById('id_label_city').style.display = 'none'
+          }
+       }     
+
        function validateForm()
        {
             var first_name = document.getElementById('id_first_name').value;
@@ -31,15 +49,26 @@
             var sex = document.getElementById('id_sex').value;
             var email = document.getElementById('id_email').value;
             var city = document.getElementById('id_city').value;
-            if (first_name==null || first_name=="" || last_name==null || last_name=="" || birthdate.length!=10 || birthdate=="" || email==null || email=="")
-            {
-               alert("Por favor complete todos los campos necesarios");
-               document.getElementById("register_btn").href="#RegisterForm";
-               return false;
-             } else {
-               document.getElementById("register_btn").href="#openModal";
-               return true;
-             }
+            var platform = document.getElementById('id_platform').value;
+            
+            if(platform == 'Facebook'){
+                if (first_name==null || first_name=="" || last_name==null || last_name=="" || birthdate.length!=10 || birthdate=="" || email==null || email==""){
+                    alert("Por favor complete todos los campos necesarios");
+                    //document.getElementById("register_btn").href="#RegisterForm";
+                    return false;
+                } else {
+                    startConnect('{{ initiative_url }}'); return false;
+                }
+            } else {
+                if (first_name==null || first_name=="" || last_name==null || last_name=="" || email==null || email==""){
+                    alert("Por favor complete todos los campos necesarios");
+                    //document.getElementById("register_btn").href="#RegisterForm";
+                    return false;
+                } else {
+                    IS_login('{{ initiative_url }}'); return false;
+                }
+            }
+             
 
        };
 
@@ -88,10 +117,10 @@
         function IS_login(initiative_url){
             var first_name = document.getElementById('id_first_name').value;
             var last_name = document.getElementById('id_last_name').value;
-            var birthdate = document.getElementById('id_birthdate').value;
-            var sex = document.getElementById('id_sex').value;
+            //var birthdate = document.getElementById('id_birthdate').value;
+            //var sex = document.getElementById('id_sex').value;
             var email = document.getElementById('id_email').value;
-            var city = document.getElementById('id_city').value;
+            //var city = document.getElementById('id_city').value;
 
             var next_url = window.location.origin +  window.location.pathname;
             //next_url = next_url.substring(0,next_url.lastIndexOf("/"));    
@@ -99,10 +128,10 @@
                             '?initiative_url=' + initiative_url +
                             '&first_name=' + first_name + 
                             '&last_name=' + last_name + 
-                            '&birthdate=' + birthdate +
-                            '&sex=' + sex +
-                            '&email=' + email +
-                            '&city=' + city;
+                            //'&birthdate=' + birthdate +
+                            //'&sex=' + sex +
+                            '&email=' + email; //+
+                            //'&city=' + city;
         };
         function askWritingPermissions(initiative_url) {
             //$('#writingPermissionModal').modal('hide');
@@ -119,7 +148,7 @@
                    // var next_url = window.location.origin +  window.location.pathname;
                    var next_url = window.location.origin +  window.location.pathname;
                    //next_url = next_url.substring(0,next_url.lastIndexOf("/")); 
-                    window.location = next_url + 'write_permissions_fb' +
+                    window.location = next_url + 'app/write_permissions_fb' +
                             '?access_token=' + response.authResponse.accessToken +
                             '&expires=' + response.authResponse.expiresIn +
                             '&signed_request=' + response.authResponse.signedRequest +
@@ -276,14 +305,21 @@ desarrollado en la Universidad Católica, que ofrece un espacio de participació
                   <div>
 
                     {% for field in form %}
+                       {% if field.name == "platform" %}
+                       <div class="row">
+                           <div class="12u 12u(mobile)">
+                              <label style="text-align: center; font-size: 10pt;">La plataforma funciona tanto en Facebook como en un sitio web propio (IdeaScale). Elegí el que prefieras</label>
+                           </div>
+                       </div>
+                       {% endif %}
                        <div class="row">
                           <div class="4u 12u(mobile)">
-                              <label style="text-align: left; padding-top: 0.8em;">{{ field.label }}</label>
+                              <label style="text-align: left; padding-top: 0.8em;" id='id_label_{{ field.name }}'>{{ field.label }}</label>
                           </div>
                           <div class="8u 12u(mobile)">
                               {% if field.label == "Fecha de Nacimiento" %}
                                  <input id="id_birthdate" name="birthdate" type="date" class="birthdate" placeholder="dd/mm/aaaa">
-                              {% else %}
+                              {% else  %}
                                  {{ field }}
                               {% endif %}
                           </div>
@@ -293,7 +329,7 @@ desarrollado en la Universidad Católica, que ofrece un espacio de participació
 
                     <div class="row">
                           <div class="12u">
-                              <a class="button" id="register_btn" href="#openModal" onclick="validateForm();" >Registrarme</a>
+                              <a class="button" id="register_btn" onclick="validateForm();" >Registrarme</a>
                           </div>
 <!--
                           <div class="6u">

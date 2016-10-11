@@ -5,7 +5,7 @@ from app.models import ConsultationPlatform, Initiative, Idea, Comment, SocialNe
 from app.sync import save_sn_post, save_sn_comment, save_sn_vote, cud_initiative_votes, cud_initiative_ideas, \
                      cud_initiative_comments, invalidate_initiative_content, do_push_content, do_delete_content, \
                      revalidate_initiative_content, notify_new_campaigns, count_other_platform_votes, notify_new_users, \
-                     notify_join_group, check_reactivated_accounts_activity
+                     notify_join_group, check_reactivated_accounts_activity, update_IS_user_demographic_data
 from app.utils import convert_to_utf8_str, call_social_network_api
 from app.error import AppError
 from celery import shared_task
@@ -50,13 +50,12 @@ def _pull_content_consultation_platform(platform, initiative):
     cud_initiative_ideas(platform, initiative)
     cud_initiative_comments(platform, initiative)
     cud_initiative_votes(platform, initiative)
-    #check_valid_users(platform, initiative)
-    #verify valid IS users
     notify_new_campaigns(initiative)
     count_other_platform_votes()
     notify_new_users()
     notify_join_group()
     check_reactivated_accounts_activity()
+    update_IS_user_demographic_data()
 
 
 def _handle_pull_exceptions(initiative, platform, invalidate_filters, update_attrs):

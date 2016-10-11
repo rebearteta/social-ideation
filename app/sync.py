@@ -6,13 +6,15 @@ import re
 import string
 import os
 import random
+import requests
 
 from app.error import AppError
+from ideascale.models import Initiative as IS_Initiative
 from app.models import Idea, Author, Location, Initiative, Comment, Vote, Campaign, ConsultationPlatform, \
                        SocialNetworkApp, SocialNetworkAppUser, AutoComment, ParticipaUser
 from app.utils import do_request, get_json_or_error, get_url_cb, build_request_url, convert_to_utf8_str, \
                       build_request_body, call_social_network_api
-from datetime import datetime
+from datetime import datetime, date
 from django.utils import timezone
 from django.utils.translation import override, activate, deactivate, ugettext as _
 from django.core.mail import EmailMessage
@@ -497,7 +499,7 @@ def get_community_members_list(sn_app):
     app_community = sn_app.community
     params = {'app': sn_app, 'group_id': sn_app.community.external_id}
     members = call_social_network_api(sn_app.connector, 'get_community_member_list', params)
-    logger.info('12sep members: ' + str(members))
+    #logger.info('12sep members: ' + str(members))
     return members
 
 def is_a_community_member(sn_app, app_user, members):
@@ -786,7 +788,7 @@ def _user_can_publish(content, author_name_utf8, sn_app, type_content):
 
 def _is_in_black_list(author):
     # The black list includes all author names whose publications should not be replicated on the CP
-    black_list = ['Marcelo Moisés Alcaraz Delgado', 'Participa PY']
+    black_list = ['Participa Py']
     if convert_to_utf8_str(author.screen_name) in black_list:
         return True
     if author.screen_name in black_list:
@@ -1559,24 +1561,25 @@ def cud_initiative_ideas(platform, initiative):
         update_or_create_content(platform, idea, Idea, filters, idea_attrs, editable_fields, 'consultation_platform',
                                  changeable_fields)
 
-def check_valid_users(platform, initiative):
-    connector = platform.connector
-    url_cb = get_url_cb(connector, 'get_users_cb')
-    url = build_request_url(url_cb.url, url_cb.callback, {'initiative_id': initiative.external_id})
-    resp = do_request(connector, url, url_cb.callback.method)
-    users = get_json_or_error(connector.name, url_cb.callback, resp)
-    for user in users:
+def update_IS_user_demographic_data():
+    initiative = IS_Initiative.objects.all()[0]
+    is_users = ParticipaUser.objects.all().filter(birthdate = None).exclude(ideascale_id = None)
+    for user in is_users:
         try:
-            participa_user = ParticipaUser.objects.get(ideascale_id = user[u'id'])
-            #if user['status'].split('/')[-1] == 'verified':
-            if 'verified' in user[u'status']:
-                participa_user.valid_user = True
-            else:
-                participa_user.valid_user = False
-            participa_user.save()
+            url = initiative.url + '/a/rest/v1/members/' + str(user.ideascale_id)
+            r = requests.get(url, headers = {'api_token' : initiative.token})
+            user_data = r.json()
+            if 'profileQuestions' in user_data.keys():
+                if user_data['profileQuestions']['Fecha de Nacimiento'] != '':
+                    date_params = user_data['profileQuestions']['Fecha de Nacimiento'].split('/')
+                    user.birthdate = date(int(date_params[2]), int(date_params[0]), int(date_params[1]))
+                if user_data['profileQuestions']['Sexo'] != '':
+                    user.sex =  user_data['profileQuestions']['Sexo']
+                if user_data['profileQuestions']['Ciudad de Residencia'] != '':
+                    user.city =  user_data['profileQuestions']['Ciudad de Residencia']
+                user.save()
         except Exception as e:
-            logger.warning(str(e))
-            #raise(e)
+            logger.warning('Error when trying to get demographic data from IS user: ' + user.first_name + ' ' + user.last_name + ': ' + str(e)) 
 
 def notify_new_campaigns(initiative):
     try:

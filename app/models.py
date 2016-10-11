@@ -7,15 +7,15 @@ class ParticipaUser(models.Model):
     #snapp_user =  models.OneToOneField(SocialNetworkAppUser) #An user could be a snapp_user if he/she logs in with FB
 #    ideascale_id = models.CharField(max_length=50, blank=True) #a blank external_id means he hasn't joined the initiatitive 
     ideascale_id = models.IntegerField(blank=True)
-    valid_user = models.BooleanField(default=False)
+    #valid_user = models.BooleanField(default=False)
     first_name = models.CharField(max_length=100, blank=True)
     last_name = models.CharField(max_length=100, blank=True)
     email = models.EmailField()
     #new_attributes
-    birthdate = models.DateField()
+    birthdate = models.DateField(null=True, blank = True)
     #age = models.CharField(max_length=20, choices=choices.GRUPOS_ETARIOS)
-    city = models.CharField(max_length=50, choices=choices.CIUDADES)
-    sex = models.CharField(max_length=10, choices=choices.SEXOS) 
+    city = models.CharField(max_length=50, choices=choices.CIUDADES, null=True, blank=True)
+    sex = models.CharField(max_length=10, choices=choices.SEXOS, null=True, blank=True) 
     welcome_msg_sent = models.BooleanField(default=False)
     def __unicode__(self):
         return self.first_name + ' ' + self.last_name + ' - '+ self.email
