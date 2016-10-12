@@ -2,7 +2,19 @@
 
 {% load i18n %}
 
-{% block script %}
+{% block script %}i
+<script type="text/javascript">
+  $(document).ready( function() {
+    document.getElementById('id_birthdate').style.display = 'none'
+    document.getElementById('id_sex').style.display = 'none'
+    document.getElementById('id_city').style.display = 'none'
+    document.getElementById('id_label_birthdate').style.display = 'none'
+    document.getElementById('id_label_sex').style.display = 'none'
+    document.getElementById('id_label_city').style.display = 'none'
+  } );
+  </script>   
+</script> 
+
 <script type="text/javascript">
   $( function() {
     $( "#id_birthdate" ).datepicker();
@@ -258,7 +270,7 @@ desarrollado en la Universidad Católica, que ofrece un espacio de participació
                         <div class="12u">
                             <div class="youtubevideowrap">
                                 <div class="video-container">
-                                    <iframe width="50%" height="400" src="https://www.youtube.com/embed/beiRRI2_-gw?cc_lang_pref=en&cc_load_policy=1" 
+                                    <iframe width="50%" height="400" src="https://www.youtube.com/embed/nIrYT5VB9C8?cc_lang_pref=en&cc_load_policy=1" 
                                             frameborder="0" allowfullscreen></iframe>
                                 </div>
                             </div>
@@ -296,7 +308,7 @@ desarrollado en la Universidad Católica, que ofrece un espacio de participació
           -->
           <header>
             <h2>Formulario de Registro</h2>
-            <p style="color: red; font-size: 1em;">Todos los campos son obligatorios.</p>
+            <span class="label label-primary" style="text-shadow: none;">Todos los campos son obligatorios</span>
           </header>
           <div>
               <div class="row">
@@ -309,7 +321,7 @@ desarrollado en la Universidad Católica, que ofrece un espacio de participació
                        {% if field.name == "platform" %}
                        <div class="row">
                            <div class="12u 12u(mobile)">
-                              <label style="text-align: center; font-size: 10pt;">La plataforma funciona tanto en Facebook como en un sitio web propio (IdeaScale). Elegí el que prefieras</label>
+                             <span class="label label-primary" style="text-shadow: none;">La plataforma funciona tanto en Facebook como en un sitio web propio (IdeaScale). Elegí el que prefieras</span>
                            </div>
                        </div>
                        {% endif %}
@@ -319,7 +331,7 @@ desarrollado en la Universidad Católica, que ofrece un espacio de participació
                           </div>
                           <div class="8u 12u(mobile)">
                               {% if field.label == "Fecha de Nacimiento" %}
-                                 <input id="id_birthdate" name="birthdate" type="date" class="birthdate" placeholder="dd/mm/aaaa">
+                                 <input id="id_birthdate" name="birthdate" type="date" class="birthdate" placeholder="dd/mm/aaaa" style="">
                               {% else  %}
                                  {{ field }}
                               {% endif %}
