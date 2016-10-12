@@ -10,12 +10,14 @@ GRUPOS_ETARIOS = (
 )
 
 SEXOS = (
+    ('',''),
     ('Masculino', 'Masculino'),
     ('Femenino', 'Femenino'),
     ('Otro', 'Otro'),
 )
 
 CIUDADES = (
+    ('',''),
     (u'Asunción', u'Asunción'),
     (u'Fuera del País', u'Fuera del País'), 
     (u'3 de Mayo - Caazapá', u'3 de Mayo - Caazapá'),

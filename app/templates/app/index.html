@@ -23,8 +23,9 @@
            return "False";
        }
        function showFormFields() {
-           var platform = document.getElementById('id_platform').value;
-           if(platform == 'Facebook'){
+           var platform = document.getElementById('id_platform');
+           $("#id_platform option[value='']").remove();
+           if(platform.value == 'Facebook'){
                document.getElementById('id_birthdate').style.display = 'block'
                document.getElementById('id_sex').style.display = 'block'
                document.getElementById('id_city').style.display = 'block'
@@ -52,7 +53,7 @@
             var platform = document.getElementById('id_platform').value;
             
             if(platform == 'Facebook'){
-                if (first_name==null || first_name=="" || last_name==null || last_name=="" || birthdate.length!=10 || birthdate=="" || email==null || email==""){
+                if (first_name==null || first_name=="" || last_name==null || last_name=="" || birthdate.length!=10 || birthdate=="" || email==null || email=="" || sex=="" || city==""){
                     alert("Por favor complete todos los campos necesarios");
                     //document.getElementById("register_btn").href="#RegisterForm";
                     return false;
@@ -60,7 +61,7 @@
                     startConnect('{{ initiative_url }}'); return false;
                 }
             } else {
-                if (first_name==null || first_name=="" || last_name==null || last_name=="" || email==null || email==""){
+                if (first_name==null || first_name=="" || last_name==null || last_name=="" || email==null || email=="" || sex=="" || city==""){
                     alert("Por favor complete todos los campos necesarios");
                     //document.getElementById("register_btn").href="#RegisterForm";
                     return false;
