@@ -3,6 +3,23 @@
 {% load i18n %}
 
 {% block script %}
+<title>Participa en tu Educación</title>
+
+<script type="text/javascript">
+/**
+* Function that tracks a click on an outbound link in Analytics.
+* This function takes a valid URL string as an argument, and uses that URL string
+* as the event label. Setting the transport method to 'beacon' lets the hit be sent
+* using 'navigator.sendBeacon' in browser that support it.
+*/
+var trackOutboundLink = function(url) {
+   ga('send', 'event', 'outbound', 'click', url, {
+     'transport': 'beacon',
+     'hitCallback': function(){}
+   });
+}
+</script>
+
 <script type="text/javascript">
     $(document).ready(function() {
     // Show or hide the sticky footer button
@@ -25,15 +42,18 @@
 
 <script type="text/javascript">
   $(document).ready( function() {
-    document.getElementById('id_birthdate').style.display = 'none'
+    /*document.getElementById('id_birthdate').style.display = 'none'
     document.getElementById('id_sex').style.display = 'none'
     document.getElementById('id_city').style.display = 'none'
+    document.getElementById('id_profession').style.display = 'none'
     document.getElementById('id_label_birthdate').style.display = 'none'
     document.getElementById('id_label_sex').style.display = 'none'
     document.getElementById('id_label_city').style.display = 'none'
-    /*if (window.location == 'http://ec2-52-32-122-242.us-west-2.compute.amazonaws.com:8000/'){
-        window.location = 'http://www.google.com.py';
-    }*/
+    document.getElementById('id_label_profession').style.display = 'none'*/
+    document.getElementById('id_row_birthdate').style.display = 'none'
+    document.getElementById('id_row_sex').style.display = 'none'
+    document.getElementById('id_row_city').style.display = 'none'
+    document.getElementById('id_row_profession').style.display = 'none'
   } );
   </script>   
 </script> 
@@ -61,19 +81,26 @@
            var platform = document.getElementById('id_platform');
            $("#id_platform option[value='']").remove();
            if(platform.value == 'Facebook'){
-               document.getElementById('id_birthdate').style.display = 'block'
+               /*document.getElementById('id_birthdate').style.display = 'block'
                document.getElementById('id_sex').style.display = 'block'
                document.getElementById('id_city').style.display = 'block'
                document.getElementById('id_label_birthdate').style.display = 'block'
                document.getElementById('id_label_sex').style.display = 'block'
-               document.getElementById('id_label_city').style.display = 'block'
+               document.getElementById('id_label_city').style.display = 'block'*/
+               document.getElementById('id_row_birthdate').style.display = 'block'
+               document.getElementById('id_row_sex').style.display = 'block'
+               document.getElementById('id_row_city').style.display = 'block'
            } else {
-               document.getElementById('id_birthdate').style.display = 'none'
+               /*document.getElementById('id_birthdate').style.display = 'none'
                document.getElementById('id_sex').style.display = 'none'
                document.getElementById('id_city').style.display = 'none'
                document.getElementById('id_label_birthdate').style.display = 'none'
                document.getElementById('id_label_sex').style.display = 'none'
-               document.getElementById('id_label_city').style.display = 'none'
+               document.getElementById('id_label_city').style.display = 'none'*/
+               document.getElementById('id_row_birthdate').style.display = 'none'
+               document.getElementById('id_row_sex').style.display = 'none'
+               document.getElementById('id_row_city').style.display = 'none'
+
           }
        }     
 
@@ -86,6 +113,7 @@
             var email = document.getElementById('id_email').value;
             var city = document.getElementById('id_city').value;
             var platform = document.getElementById('id_platform').value;
+            var profession = document.getElementById('id_profession').value;
             
             if(platform == 'Facebook'){
                 if (first_name==null || first_name=="" || last_name==null || last_name=="" || birthdate.length!=10 || birthdate=="" || email==null || email=="" || sex=="" || city==""){
@@ -128,12 +156,13 @@
             var sex = document.getElementById('id_sex').value;
             var email = document.getElementById('id_email').value;
             var city = document.getElementById('id_city').value;
+            var profession = document.getElementById('id_profession').value;
 
             FB.login(function(response) {
                 if (response.authResponse) {
                 var next_url = window.location.origin +  window.location.pathname;
-                //next_url = next_url.substring(0,next_url.lastIndexOf("/"));    
-                window.location = next_url + 'app/login_fb' +
+                next_url = next_url.substring(0,next_url.lastIndexOf("/"));    
+                window.location = next_url + '/login_fb' +
                             '?access_token=' + response.authResponse.accessToken +
                             '&expires=' + response.authResponse.expiresIn +
                             '&signed_request=' + response.authResponse.signedRequest +
@@ -144,7 +173,8 @@
                             '&birthdate=' + birthdate +
                             '&sex=' + sex +
                             '&email=' + email +
-                            '&city=' + city;
+                            '&city=' + city
+                            '&profession=' + profession;
                 } else {
                     checkStatusCallback(response);
                 }
@@ -159,8 +189,8 @@
             //var city = document.getElementById('id_city').value;
 
             var next_url = window.location.origin +  window.location.pathname;
-            //next_url = next_url.substring(0,next_url.lastIndexOf("/"));    
-            window.location = next_url + 'app/login_IS' +
+            next_url = next_url.substring(0,next_url.lastIndexOf("/"));    
+            window.location = next_url + '/login_IS' +
                             '?initiative_url=' + initiative_url +
                             '&first_name=' + first_name + 
                             '&last_name=' + last_name + 
@@ -177,14 +207,15 @@
             var sex = document.getElementById('id_sex').value;
             var email = document.getElementById('id_email').value;
             var city = document.getElementById('id_city').value;
+            var profession = document.getElementById('id_profession').value;
 
             FB.login(function(response) {
                 console.log(initiative_url);
                 if (response.authResponse) {
                    // var next_url = window.location.origin +  window.location.pathname;
                    var next_url = window.location.origin +  window.location.pathname;
-                   //next_url = next_url.substring(0,next_url.lastIndexOf("/")); 
-                    window.location = next_url + 'app/write_permissions_fb' +
+                   next_url = next_url.substring(0,next_url.lastIndexOf("/")); 
+                   window.location = next_url + '/write_permissions_fb' +
                             '?access_token=' + response.authResponse.accessToken +
                             '&expires=' + response.authResponse.expiresIn +
                             '&signed_request=' + response.authResponse.signedRequest +
@@ -195,7 +226,8 @@
                             '&birthdate=' + birthdate +
                             '&sex=' + sex +
                             '&email=' + email +
-                            '&city=' + city;
+                            '&city=' + city
+                            '&profession=' + profession;
 
                 } else {
                     checkStatusCallback(response);
@@ -239,12 +271,12 @@
 <!-- Nav -->
    <nav id="nav">
        <ul class="container" style="max-width: none;">
-          <li><a href="http://www.dei.uc.edu.py/proyectos/participa/" target="_blank" style="color:#43B3E7;">Proyecto Participa</a></li>
-          <li><a href="#tematicas">Temáticas</a></li>
-          <li><a href="#ideas_populares">Ideas Más Votadas</a></li>
-          <li><a href="#ideas_recientes">Ideas Recientes</a></li>
-          <li><a href="#organizan">Organizadores</a></li>
-          <li><a href="#contacto">Contacto</a></li>
+          <li><a href="http://www.dei.uc.edu.py/proyectos/participa/" target="_blank" style="color:#43B3E7;" onclick="trackOutboundLink('Proyecto Participa');">Proyecto Participa</a></li>
+          <li><a href="#tematicas" onclick="trackOutboundLink('#tematicas');">Temáticas</a></li>
+          <li><a href="#ideas_populares" onclick="trackOutboundLink('#ideas_populares');">Ideas Más Votadas</a></li>
+          <li><a href="#ideas_recientes" onclick="trackOutboundLink('#ideas_recientes');">Ideas Recientes</a></li>
+          <li><a href="#organizan" onclick="trackOutboundLink('#organizan');">Organizadores</a></li>
+          <li><a href="#contacto" onclick="trackOutboundLink('#contacto');">Contacto</a></li>
        </ul>
    </nav>
 
@@ -262,12 +294,10 @@
                  <div class="12u 12u(mobile)">
                      <header>
                           <!-- <h1> <strong> Participa en tu Educación </strong></h1>-->
-                          <p>
-Participa en tu Educación es una iniciativa del 
-<a href="http://www.dei.uc.edu.py/proyectos/participa/" target="_blank" style="color:#43B333E7;">Proyecto Participa</a> 
-desarrollado en la Universidad Católica, que ofrece un espacio de participación online en el que queremos idear juntos soluciones para los desafíos de nuestra educación
-                          </p>
-                       </header>
+                          <h3 style="color: #fff; margin-bottom: 0px;">
+                           Hoy nuestra educación en Paraguay sufre de estos problemas
+                          </h3>
+                     </header>
                    </div>
                </div>
 <!--
@@ -277,9 +307,63 @@ desarrollado en la Universidad Católica, que ofrece un espacio de participació
                     </div>
                </div>
 -->
+
        </article>
    </div>
 
+<!-- Infografias -->
+<div class="container" style="max-width: none; margin-top: -12%;">
+
+                    <div class="row">
+                        <div class="4u 12u(mobile)">
+<!--                            <p style="color: #fff; text-align: center;">Infraestructura Escolar en Emergencia</p> -->
+                            <a href="http://www.abc.com.py/edicion-impresa/locales/carencias-en-infraestructura-escolar-1457138.html" 
+                               title="Infraestructura Educativa" target= "_blank" >
+                              <img src="/static/img/infraestructura_02.jpg" alt="Infraestructura Escolar en emergencia" style="height: 80%; width: 100%;">
+                            </a>
+                        </div>                    
+             
+                        <div class="4u 12u(mobile)">
+                            <a href="http://www.paraguay.com/nacionales/53-reprueba-examen-del-mec-140334" 
+                               title="Formación Docente" target= "_blank">
+                              <img src="/static/img/formacion_03.jpg" alt="Poca formación docente "style="height: 80%; width: 100%;" >
+                            </a>
+                        </div>                       
+                  
+                        <div class="4u 12u(mobile)">
+                            <a href="http://www.abc.com.py/nacionales/escasos-numeros-de-alumnos-en-las-escuelas-1340206.html" 
+                               title="Asistencia Escolar" target= "_blank">
+                              <img src="/static/img/asistencia_02.jpg" alt="Baja asistencia escolar" style="height: 80%; width: 100%;" >
+                            </a>
+                        </div>                       
+                    </div>
+</div>
+
+<!-- Frase -->
+   <div class="wrapper style2">
+      <article id="infografias">
+                <div class="container" style="max-width: none;">
+
+                    <div class="row" style="display: flex; justify-content: center;">                    
+                        <div class="6u 12u(mobile)">
+                            <blockquote style="border-left-color: #1a5f9d;">
+                              <h4>La educación no cambia el mundo. Cambia a las personas que van a cambiar el mundo </h4>
+                              <footer>Paulo Freire</footer>
+                            </blockquote>
+                        <div> 
+                    </div>
+
+                    <div class="row">    
+                        <div class="12u 12u(mobile)">
+                            <br>
+                            <strong><p style="text-align: center;">
+                               Sumate a las más de 60 personas que ya están contribuyendo a construir una educación de calidad
+                            </p></strong>
+                        <div> 
+                    </div>
+                </div>
+      </article>   
+   </div>
 
 <!-- Como -->
    <div class="wrapper style2">
@@ -344,11 +428,13 @@ desarrollado en la Universidad Católica, que ofrece un espacio de participació
                        {% if field.name == "platform" %}
                        <div class="row">
                            <div class="12u 12u(mobile)">
-                             <span class="label label-primary" style="text-shadow: none;">La plataforma funciona tanto en Facebook como en un sitio web propio (IdeaScale). Elegí el que prefieras</span>
+                             <span class="label label-primary" style="text-shadow: none; white-space: normal;">
+                                  La plataforma funciona tanto en Facebook como en un sitio web propio (IdeaScale). Elegí el que prefieras
+                             </span>
                            </div>
                        </div>
                        {% endif %}
-                       <div class="row">
+                       <div class="row" id='id_row_{{ field.name }}'>
                           <div class="4u 12u(mobile)">
                               <label style="text-align: left; padding-top: 0.8em;" id='id_label_{{ field.name }}'>{{ field.label }}</label>
                           </div>
@@ -365,7 +451,7 @@ desarrollado en la Universidad Católica, que ofrece un espacio de participació
 
                     <div class="row">
                           <div class="12u">
-                              <a class="button" id="register_btn" onclick="validateForm();" >Registrarme</a>
+                              <a class="button" id="register_btn" onclick="trackOutboundLink('Registrarme'); validateForm();" >Registrarme</a>
                           </div>
 <!--
                           <div class="6u">
@@ -399,14 +485,14 @@ desarrollado en la Universidad Católica, que ofrece un espacio de participació
                             <section class="box style1" style="max-height: 480px">
                                     <span class="icon featured fa-institution"></span>
                                     <a href="http://participaentueducacion.ideascale.com/a/ideas/recent/campaign-filter/byids/campaigns/52137" 
-                                       target="_blank" style="color: #3ba8d3;">
+                                       target="_blank" style="color: #3ba8d3;" onclick="trackOutboundLink('Infraestructura educativa');">
                                         <h3>Infraestructura Educativa</h3>
                                     </a>
                                     <p>
                                       Una buena educación necesita un buen espacio físico. ¿Cómo mejoramos la infraestructura educativa?
                                     </p>
                                     <a href="http://participaentueducacion.ideascale.com/a/ideas/recent/campaign-filter/byids/campaigns/52137" 
-                                       target="_blank">
+                                       target="_blank" onclick="trackOutboundLink('Infraestuctura educativa.');">
                                        Ver más 
                                     </a>
                             </section>
@@ -415,14 +501,14 @@ desarrollado en la Universidad Católica, que ofrece un espacio de participació
                            <section class="box style1" style="max-height: 480px">
                                    <span class="icon featured fa-graduation-cap"></span>
                                    <a href="http://participaentueducacion.ideascale.com/a/ideas/recent/campaign-filter/byids/campaigns/52139" 
-                                      target="_blank" style="color: #3ba8d3;">
+                                      target="_blank" style="color: #3ba8d3;" onclick="trackOutboundLink('Formacion docente');">
                                       <h3>Formación <br> Docente</h3>
                                    </a>
                                    <p>
                                     El que enseña también debe aprender permanentemente. ¿Cómo mantenemos a los docentes bien formados y actualizados?
                                    </p>
                                    <a href="http://participaentueducacion.ideascale.com/a/ideas/recent/campaign-filter/byids/campaigns/52139" 
-                                      target="_blank">
+                                      target="_blank" onclick="trackOutboundLink('Formacion docente');">
                                       Ver más 
                                    </a>
                            </section>
@@ -431,14 +517,14 @@ desarrollado en la Universidad Católica, que ofrece un espacio de participació
                            <section class="box style1" style="max-height: 480px">
                                    <span class="icon featured fa-user-plus"></span>
                                    <a href="http://participaentueducacion.ideascale.com/a/ideas/recent/campaign-filter/byids/campaigns/52138" 
-                                      target="_blank" style="color: #3ba8d3;">
+                                      target="_blank" style="color: #3ba8d3;" onclick="trackOutboundLink('Asistencia escolar');">
                                       <h3>Asistencia <br>  Escolar</h3>
                                    </a>
                                    <p>
                                     La asistencia a clases va más allá de una lista de control de asistencia. ¿Cómo motivamos a niños y jóvenes a ir a clases?
                                    </p>
                                    <a href="http://participaentueducacion.ideascale.com/a/ideas/recent/campaign-filter/byids/campaigns/52138" 
-                                      target="_blank">
+                                      target="_blank" onclick="trackOutboundLink('Asistencia escolar');">
                                       Ver más 
                                    </a>
                            </section>
@@ -462,7 +548,7 @@ desarrollado en la Universidad Católica, que ofrece un espacio de participació
                          <div class="4u 12u(mobile)">
                              <article class="box style2" style="height: 500px">
                                   <div>
-                                     <h3><a href={{idea.url}}  style="color: #3ba8d3;">{{idea.title}}</a></h3>
+                                     <h3><a href={{idea.url}}  style="color: #3ba8d3;" onclick="trackOutboundLink('Idea popular');">{{idea.title}}</a></h3>
                                      <p style="text-align: left;">
                                         <strong> {{idea.author}} </strong>  <br>
                                         {{idea.text}}
@@ -495,7 +581,7 @@ desarrollado en la Universidad Católica, que ofrece un espacio de participació
                       {% for idea in recent %}
                          <div class="4u 12u(mobile)">
                              <article class="box style2" style="height: 500px">
-                                     <h3><a href={{idea.url}} style="color: #3ba8d3;">{{idea.title}}</a></h3>
+                                     <h3><a href={{idea.url}} style="color: #3ba8d3;" onclick="trackOutboundLink('Idea reciente');">{{idea.title}}</a></h3>
                                      <p style="text-align: left;">
                                         <strong> {{idea.author}} </strong>  <br>
                                         {{idea.text}}
@@ -538,7 +624,7 @@ desarrollado en la Universidad Católica, que ofrece un espacio de participació
                  -->
                  <div class="4u 12u(mobile)">
 	             <span>
-                          <a href="http://www.universidadcatolica.edu.py/" target="_blank">
+                          <a href="http://www.universidadcatolica.edu.py/" target="_blank" onclick="trackOutboundLink('http://www.universidadcatolica.edu.py/');">
                             <img src="/static/img/u_uca.jpg" alt="" class="logo">
                           </a>
                      </span>
@@ -546,7 +632,7 @@ desarrollado en la Universidad Católica, que ofrece un espacio de participació
 
                  <div class="4u 12u(mobile)">
                      <span>
-                          <a href="http://www.dei.uc.edu.py/" target="_blank">
+                          <a href="http://www.dei.uc.edu.py/" target="_blank" onclick="trackOutboundLink('http://www.dei.uc.edu.py/');">
                             <img src="/static/img/dei_logo.jpeg" alt="" class="logo" />
                           </a>
                      </span>
@@ -555,7 +641,7 @@ desarrollado en la Universidad Católica, que ofrece un espacio de participació
 
                  <div class="4u 12u(mobile)">
                      <span>
-                          <a href="http://www.unitn.it/en" target="_blank">
+                          <a href="http://www.unitn.it/en" target="_blank" onclick="trackOutboundLink('http://www.unitn.it/en');">
                             <img src="/static/img/unitn.jpg" alt="" class="logo"/>
                           </a>
                      </span>
@@ -577,14 +663,14 @@ desarrollado en la Universidad Católica, que ofrece un espacio de participació
              <div class="row">
                 <div class="4u 12u(mobile)">
   		   <section>
-		        <a href="https://www.google.com.py/maps/place/Universidad+Cat%C3%B3lica+Nuestra+Se%C3%B1ora+de+la+Asunci%C3%B3n/@-25.3264224,-57.6382384,15z/data=!4m5!3m4!1s0x0:0xa70c71f9d5efbaa9!8m2!3d-25.3237132!4d-57.6364473?hl=es" target="_blank" ><span class="icon featured fa-location-arrow" style="cursor: pointer;" ></span></a>
+		        <a href="https://www.google.com.py/maps/place/Universidad+Cat%C3%B3lica+Nuestra+Se%C3%B1ora+de+la+Asunci%C3%B3n/@-25.3264224,-57.6382384,15z/data=!4m5!3m4!1s0x0:0xa70c71f9d5efbaa9!8m2!3d-25.3237132!4d-57.6364473?hl=es" target="_blank" onclick="trackOutboundLink('Ubicacion Google Maps');"><span class="icon featured fa-location-arrow" style="cursor: pointer;" ></span></a>
 			<p style="font-size: 11pt;">Universidad Católica "Nuestra Señora de la Asunción<br>Campus Universitario. Tte. Cantaluppi y Villalón<br>C.C. 1683. Asunción Paraguay </p>
 	           </section>
 		</div>
 		<div class="4u 12u(mobile)">
  	           <section>
 			<span class="icon featured fa-envelope"></span>
-		        <p style="font-size: 11pt;">E-mail:<br><a href="mailto:participa@uc.edu.py" class="button"> participa@uc.edu.py</a></p>			
+		        <p style="font-size: 11pt;">E-mail:<br><a href="mailto:participa@uc.edu.py" class="button" onclick="trackOutboundLink('Enviar Correo');"> participa@uc.edu.py</a></p>			
                    </section>
 		</div>
 		<div class="4u 12u(mobile)">
@@ -603,7 +689,7 @@ desarrollado en la Universidad Católica, que ofrece un espacio de participació
           <div class="row">
              <div class="12u">	
                  <p style="margin-bottom:1em;">
-                    Participa en tu Educación es una iniciativa del <a href="http://www.dei.uc.edu.py/proyectos/participa/" target="_blank">Proyecto Participa</a> financiado por el Consejo Nacional de Ciencia y Tecnología de Paraguay (CONACYT).
+                    Participa en tu Educación es una iniciativa del <a href="http://www.dei.uc.edu.py/proyectos/participa/" target="_blank" onclick="trackOutboundLink('Proyecto Participa');">Proyecto Participa</a> financiado por el Consejo Nacional de Ciencia y Tecnología de Paraguay (CONACYT).
                  </p>
                  <p style="margin-bottom:1em;">
                     Los comentarios en el sitio son responsabilidad exclusiva de los participantes y no representan la opinión de las instituciones organizadoras de la iniciativa.
@@ -633,7 +719,7 @@ desarrollado en la Universidad Católica, que ofrece un espacio de participació
 	<div class="row">
 		<div class="12u">
 			<a href="#close" title="Close" class="close">X</a>
-			<img src="/static/img/infraestructura.jpg" style="width:100%; height:100%;">
+			<img src="/static/img/infraestructura_01.jpg" style="width:100%; height:100%;">
 		</div>
 	</div>
 </div>
@@ -642,7 +728,7 @@ desarrollado en la Universidad Católica, que ofrece un espacio de participació
         <div class="row">
                 <div class="12u">
                         <a href="#close" title="Close" class="close">X</a>
-                        <img src="/static/img/formacion.jpg" style="width:100%; height:100%;">
+                        <img src="/static/img/formacion_01.jpg" style="width:100%; height:100%;">
                 </div>
         </div>
 </div>
@@ -651,7 +737,7 @@ desarrollado en la Universidad Católica, que ofrece un espacio de participació
         <div class="row">
                 <div class="12u">
                         <a href="#close" title="Close" class="close">X</a>
-                        <img src="/static/img/asistencia.jpg" style="width:100%; height:100%;">
+                        <img src="/static/img/asistencia_01.jpg" style="width:100%; height:100%;">
                 </div>
         </div>
 </div>
@@ -689,13 +775,13 @@ desarrollado en la Universidad Católica, que ofrece un espacio de participació
                     <div class="row 100%">
                       <div class="12u">
                           <a class="btn btn-lg btn-primary" href="{{fb_group_url }}" target="_blank"
-                             style="margin-top: 10px; border-right: 10px; width:250px" >
+                             style="margin-top: 10px; border-right: 10px; width:250px" onclick="trackOutboundLink('Ir a Facebook');">
                              <span style="padding-right:3px; padding-top: 3px; display:inline-block;">
                                    <img src="/static/img/fb_icon.png" class="logo-icon"></img>
                              </span> &nbsp; Ir a Facebook
                           </a>
 
-                         <a class="btn btn-lg btn-primary" href="{{ initiative_url }}" target="_blank" style="margin-top: 10px; width: 250px;" >
+                         <a class="btn btn-lg btn-primary" href="{{ initiative_url }}" target="_blank" style="margin-top: 10px; width: 250px;" onclick="trackOutboundLink('Ir a Ideascale');">
                              <span style="padding-right:3px; padding-top: 3px; display:inline-block;">
                                    <img src="/static/img/is_icon.png" class="logo-icon"></img>
                              </span> &nbsp;&nbsp; Ir a IdeaScale

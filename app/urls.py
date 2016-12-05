@@ -4,9 +4,10 @@ from . import views
 
 urlpatterns = [
     # ex: /app/
-    url(r'^$', views.index, name='index'),
+    url(r'^$', views.process_login, name='index'),
     # ex: /app/v1
     url(r'^v1$', views.index_v1, name='index-v1'),  
+    url(r'^v2$', views.index_v2, name='index-v2'),  
     # ex: /app/login_fb
     url(r'^login_fb$', views.login_fb, name='login_fb'),
     # ex: /app/fb_real_time_updates/
@@ -24,3 +25,4 @@ urlpatterns = [
 
 
 ]
+

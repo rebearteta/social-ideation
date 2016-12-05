@@ -12,6 +12,7 @@ class SignInForm (forms.Form):
    #age = forms.ChoiceField(choices=choices.GRUPOS_ETARIOS, label = "Edad")
    sex = forms.ChoiceField(choices=choices.SEXOS, label = "Sexo", widget=forms.Select(attrs = {'onchange' : '$("#id_sex option[value=\'\']").remove();',}))
    city = forms.ChoiceField(choices=choices.CIUDADES, label = "Ciudad de Residencia", widget=forms.Select(attrs = {'onchange' : '$("#id_city option[value=\'\']").remove();',}))
+   profession = forms.CharField(label = "Profesión", max_length=100)
 """
 class MyModelForm(SignInForm):
     class Meta:

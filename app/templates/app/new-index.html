@@ -1,0 +1,15 @@
+{% extends 'app/base.html' %}
+
+{% load i18n %}
+
+{% block script %}
+
+<script type="text/javascript">
+  $(document).ready( function() {
+    if (window.location == '{{ site1 }}/'){
+        window.location = '{{ site1 }}/app/v1';
+    } else {
+        window.location = '{{ site2 }}/app/v2';
+    } } );
+  </script>   
+{% endblock %}

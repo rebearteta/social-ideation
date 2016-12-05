@@ -1,18 +1,18 @@
 <div>
-    <img src="http://www.participaentueducacion.org.py/static/img/email_banner.jpg" alt="Participa en tu Educación" width="650" style="display:block">
+    <img src="{{ initiative_site_url }}/static/img/email_banner_{{ initiative_community_id }}.jpg" alt="{{ initiative_name }}" width="650" style="display:block">
     <br><br>
     Hola {{ author }},
     <br><br>
-    Gracias por contribuir a la iniciativa Participa en tu Educaci&oacute;n.
+    Gracias por contribuir a la iniciativa <strong>{{ initiative_name }}</strong>.
     <br><br>
     Ser&iacute;a muy bueno que la gente en el Grupo de Facebook se involucrara en la discusi&oacute;n sobre tu {{ type_content }}.
     <br><br>
     Si permites que {{ initiative_name }} publique en Facebook en tu nombre, todas tus ideas y comentarios ser&aacute;n autom&aacute;ticamente publicados en tu nombre en el grupo de Facebook de la iniciativa.
     <br><br>
-    Para permitir que {{ initiative_name }} publique en tu nombre, ve a siguiente enlace y reg&iacute;strate, escogiendo Facebook como plataforma de participaci&oacute;n.
+    Para permitir que {{ initiative_name }} publique en tu nombre, ve al siguiente enlace y reg&iacute;strate, escogiendo Facebook como tu canal de participaci&oacute;n.
     <br><br>
     <h2 style="text-align: center;">
-        <a href="http://participaentueducacion.org.py/app/register">Registrarme con Facebook</a>
+        <a href="{{ initiative_site_url }}/#registro">Registrarme con Facebook</a>
     </h2>
     <br><br>
     Cualquier consulta no dudes en escribirnos a este correo.
@@ -21,5 +21,5 @@
     <br><br>
     Saludos.
     <br><br>
-    El equipo de <a href="http://www.participaentueducacion.org.py">Participa en tu Educaci&oacute;n.</a>
+    El equipo de <a href="{{ initiative_site_url }}">{{ initiative_name }}.</a>
 </div>

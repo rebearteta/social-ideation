@@ -52,10 +52,10 @@ def _pull_content_consultation_platform(platform, initiative):
     cud_initiative_votes(platform, initiative)
     notify_new_campaigns(initiative)
     count_other_platform_votes()
-    notify_new_users()
-    notify_join_group()
+    notify_new_users(initiative)
+    notify_join_group(initiative)
     check_reactivated_accounts_activity()
-    update_IS_user_demographic_data()
+    update_IS_user_demographic_data(initiative)
 
 
 def _handle_pull_exceptions(initiative, platform, invalidate_filters, update_attrs):

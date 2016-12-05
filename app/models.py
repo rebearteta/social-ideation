@@ -16,7 +16,9 @@ class ParticipaUser(models.Model):
     #age = models.CharField(max_length=20, choices=choices.GRUPOS_ETARIOS)
     city = models.CharField(max_length=50, choices=choices.CIUDADES, null=True, blank=True)
     sex = models.CharField(max_length=10, choices=choices.SEXOS, null=True, blank=True) 
+    profession = models.CharField(max_length=100, null=True, blank=True)
     welcome_msg_sent = models.BooleanField(default=False)
+    initiative = models.ForeignKey('Initiative')
     def __unicode__(self):
         return self.first_name + ' ' + self.last_name + ' - '+ self.email
 
@@ -35,7 +37,7 @@ class SocialNetworkAppUser(models.Model):
     #city = models.CharField(max_length=20, choices=choices.CIUDADES, blank=True)
     #sex = models.CharField(max_length=10, choices=choices.SEXOS, blank=True) 
     participa_user = models.OneToOneField(ParticipaUser, null=True, blank=True)
-    registration_timestamp = models.DateTimeField(auto_now_add=True)
+    registration_timestamp = models.DateTimeField(auto_now_add=True, editable=True)
     
     def __unicode__(self):
         if self.name:
@@ -92,12 +94,14 @@ class ConsultationPlatform(models.Model):
 
 class Initiative(models.Model):
     external_id = models.IntegerField(editable=False)
+    community_id = models.IntegerField(editable=True)
     name = models.CharField(max_length=50, editable=False)
-    platform = models.ForeignKey(ConsultationPlatform, editable=False)
+    platform = models.ForeignKey(ConsultationPlatform, editable=True)
     social_network = models.ManyToManyField(SocialNetworkApp, blank=True)
     hashtag = models.CharField(unique=True, max_length=14, null=True,
                                help_text="Max length 14 characters (do not include '#')")
     url = models.URLField(editable=False)
+    site_url = models.URLField(editable=True, default=None, null=True, blank=True)
     users = models.IntegerField(editable=False, default=0)
     ideas = models.IntegerField(editable=False, default=0)
     votes = models.IntegerField(editable=False, default=0)

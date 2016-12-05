@@ -19,6 +19,7 @@ from django.utils import timezone
 from django.utils.translation import activate, ugettext as _
 
 from .forms import SignInForm
+from social_ideation.settings import URL_1, URL_2
 
 logger = logging.getLogger(__name__)
 
@@ -194,17 +195,18 @@ def is_supported_language(language_code):
     return language_code in supported_languages
 
 
-def get_initiative_info():
+def get_initiative_info(initiative_url):
     # Hardcoded get the first active initiative and the
     # url of the community associated to the first social network
     # where it is executed
-    initiative = Initiative.objects.get(active=True)
+    initiative = Initiative.objects.get(active=True, url=initiative_url)
     return {'initiative_name': initiative.name, 'initiative_url': initiative.url,
-            'fb_group_url': initiative.social_network.all()[0].community.url}
+            'fb_group_url': initiative.social_network.all()[0].community.url, 
+             'site_url': initiative.site_url}
 
 
-def _get_recent_ideas (n_ideas = 3):
-    ideas = Idea.objects.all().exclude(sn_id=None, cp_id=None)
+def _get_recent_ideas (n_ideas, initiative_url):
+    ideas = Idea.objects.all().filter(initiative__url = initiative_url).exclude(sn_id=None, cp_id=None)
     for idea in ideas:
         other_positive = int(idea.payload.split(',')[0].split('=')[1])
         idea.positive_votes = idea.positive_votes + other_positive
@@ -215,8 +217,8 @@ def _get_recent_ideas (n_ideas = 3):
         idea.text = idea.text[0:175] + '...'
     return recent_ideas
 
-def _get_top_ideas (n_ideas = 3): 
-    ideas = Idea.objects.all().exclude(sn_id=None, cp_id=None)
+def _get_top_ideas (n_ideas, initiative_url):
+    ideas = Idea.objects.all().filter(initiative__url = initiative_url).exclude(sn_id=None, cp_id=None)
     for idea in ideas:
         other_positive = int(idea.payload.split(',')[0].split('=')[1])
         idea.positive_votes = idea.positive_votes + other_positive
@@ -227,8 +229,9 @@ def _get_top_ideas (n_ideas = 3):
         idea.text = idea.text[0:175] + '...'
     return top_ideas
 
-def _get_campaigns ():
-    campaigns = Campaign.objects.all() #Hardcoded for the first initiative
+def _get_campaigns (initiative_url):
+    #campaigns = Campaign.objects.all() #Hardcoded for the first initiative
+    campaigns = Campaign.objects.filter(initiative__url = initiative_url)
     return campaigns
 
 def index(request):
@@ -253,12 +256,12 @@ def index(request):
     else:
         activate(language_to_render)
 
-    context = get_initiative_info()
+    context = get_initiative_info(URL_1)
     form = SignInForm()
     context['form'] = form
-    context['top'] = _get_top_ideas(3)
-    context['recent'] = _get_recent_ideas(3)
-    context['campaigns'] = _get_campaigns()
+    context['top'] = _get_top_ideas(3, context['initiative_url'])
+    context['recent'] = _get_recent_ideas(3, context['initiative_url'])
+    context['campaigns'] = _get_campaigns(context['initiative_url'])
     return render(request, 'app/index.html', context)
 
 def index_v1(request):
@@ -283,13 +286,45 @@ def index_v1(request):
     else:
         activate(language_to_render)
 
-    context = get_initiative_info()
+    context = get_initiative_info(URL_1)
     form = SignInForm()
     context['form'] = form
-    context['top'] = _get_top_ideas(3)
-    context['recent'] = _get_recent_ideas(3)
-    context['campaigns'] = _get_campaigns()
+    context['top'] = _get_top_ideas(3, context['initiative_url'])
+    context['recent'] = _get_recent_ideas(3, context['initiative_url'])
+    context['campaigns'] = _get_campaigns(context['initiative_url'])
     return render(request, 'app/index-v1.html', context)
+
+
+def index_v2(request):
+    # Detect the default language to show the page
+    # If the preferred language is supported, the page will be presented in that language
+    # Otherwise english will be chosen
+    language_to_render = None
+
+    browser_language_code = request.META.get('HTTP_ACCEPT_LANGUAGE', None)
+
+    if browser_language_code:
+        languages = [language for language in browser_language_code.split(',') if
+                     '=' not in language]
+        for language in languages:
+            language_code = language.split('-')[0]
+            if is_supported_language(language_code):
+                language_to_render = language_code
+                break
+
+    if not language_to_render:
+        activate('en')
+    else:
+        activate(language_to_render)
+
+    context = get_initiative_info(URL_2)
+    form = SignInForm()
+    context['form'] = form
+    context['top'] = _get_top_ideas(3, context['initiative_url'])
+    context['recent'] = _get_recent_ideas(3, context['initiative_url'])
+    context['campaigns'] = _get_campaigns(context['initiative_url'])
+    return render(request, 'app/index-v2.html', context)
+
 
 def register(request):
     language_to_render = None
@@ -342,23 +377,12 @@ def register_v1(request):
 
 # NOT USED. PROBABLY IT'S GONNA BE DELETED
 def process_login(request):
-    # return HttpResponse('It works')
+    #return HttpResponse('It works')
+    context = {}
+    context['site1'] = get_initiative_info(URL_1)['site_url']
+    context['site2'] = get_initiative_info(URL_2)['site_url']
+    return render(request, 'app/new-index.html', context)
     # if this is a POST request we need to process the form data
-    if request.method == 'POST':
-        # create a form instance and populate it with data from the request:
-        form = SignInForm(request.POST)
-        # check whether it's valid:
-        if form.is_valid():
-            # process the data in form.cleaned_data as required
-            # ...
-            # redirect to a new URL:
-            return HttpResponse('Formulario completado')
-        else:
-            return HttpResponse('Datos incorrectos')
-    else:
-        return HttpResponseRedirect('/')
-
-    # if a GET (or any other method) we'll create a blank form
 
 def _get_initiative_fb_app(initiative_url):
     initiative = Initiative.objects.get(url=initiative_url)
@@ -375,7 +399,7 @@ def _save_user(user_id, access_token, initiative_url, type_permission, demo_data
         ret_token = Facebook.get_long_lived_access_token(fb_app.app_id, fb_app.app_secret,
                                                          access_token)
         try:
-            user = SocialNetworkAppUser.objects.get(external_id=user_id)
+            user = SocialNetworkAppUser.objects.get(external_id=user_id, snapp=fb_app)
             user.access_token = ret_token['access_token']
             user.access_token_exp = calculate_token_expiration_time(ret_token['expiration'])
             if type_permission == 'write':
@@ -410,8 +434,9 @@ def _save_user(user_id, access_token, initiative_url, type_permission, demo_data
             user.save()
             #############################################################################
             try:
-                participa_user = ParticipaUser.objects.get(email=demo_data['email'])
+                participa_user = ParticipaUser.objects.get(email=demo_data['email'], initiative__url= initiative_url)
             except ParticipaUser.DoesNotExist:
+                demo_data['initiative'] = Initiative.objects.get(url=initiative_url)
                 participa_user = ParticipaUser(**demo_data)
                 participa_user.save()
             user.participa_user = participa_user
@@ -431,7 +456,8 @@ def _get_demo_data(request):
     sex = request.GET.get('sex')
     email = request.GET.get('email')
     city = request.GET.get('city')
-    demo_data = {'first_name':first_name, 'last_name':last_name, 'birthdate': birthdate, 'sex':sex, 'email':email, 'city':city}
+    profession = request.GET.get('profession')
+    demo_data = {'first_name':first_name, 'last_name':last_name, 'birthdate': birthdate, 'sex':sex, 'email':email, 'city':city, 'profession':profession}
     if (first_name!=None and last_name!=None and email!=None):
     	return demo_data
     else:
@@ -441,10 +467,17 @@ def _get_demo_data(request):
 def login_fb(request):
     access_token = request.GET.get('access_token')
     user_id = request.GET.get('user_id')
-    initiatiative_url = request.GET.get('initiative_url')
+    initiative_url = request.GET.get('initiative_url')
     demo_data = _get_demo_data(request)
-    _save_user(user_id, access_token, initiatiative_url, 'read', demo_data)
-    return redirect('/#askWRperm')
+    _save_user(user_id, access_token, initiative_url, 'read', demo_data)
+    #next_url = '/' + '/'.join(request.get_full_path().split('#')[0].split('/')[3:])
+    #next_url = request.path
+    #return redirect(next_url + '#askWRperm')
+    if initiative_url == URL_1:
+        #return redirect('/#askWRperm')
+        return redirect('/app/v1#askWRperm')
+    elif initiative_url == URL_2:
+        return redirect('/app/v2#askWRperm')
 
 def _create_IS_user (initiative_url, demo_data):
     initiative = Initiative.objects.get(url=initiative_url)
@@ -460,7 +493,7 @@ def _create_IS_user (initiative_url, demo_data):
 
 def _save_IS_user(initiative_url, demo_data):
     try:
-        participa_user = ParticipaUser.objects.get(email=demo_data['email'])
+        participa_user = ParticipaUser.objects.get(email=demo_data['email'], initiative__url=initiative_url)
         #if participa_user.valid_user == False:
         user = _create_IS_user(initiative_url, demo_data)
         participa_user.ideascale_id = user['id']
@@ -468,6 +501,7 @@ def _save_IS_user(initiative_url, demo_data):
     except ParticipaUser.DoesNotExist:    
         user = _create_IS_user(initiative_url, demo_data)
         demo_data['ideascale_id'] = user['id']
+        demo_data['initiative'] = Initiative.objects.get(url=initiative_url)
         participa_user = ParticipaUser(**demo_data)
         participa_user.save()
         #aca rebe. tenes ya el initiative_url como parametro de esta func. y el mail esta en demo_data['email']
@@ -479,18 +513,25 @@ def login_IS(request):
     _save_IS_user(initiative_url, demo_data) ## After retrieving the data a new IS_user object should be created and saved
     # After the new user is created in our DB a register-confirmation mail must be sent through the API
     # a session value (cookie) should be set here probably to recognize this user.
-    
-    return redirect("/#mailSent")
+    logger.info('26oct ' + str(request.get_full_path()))
+    #return redirect("/#mailSent")
+    if initiative_url == URL_1:
+        #return redirect("/#mailSent")
+        return redirect("/app/v1#mailSent")
+    elif initiative_url == URL_2:
+        return redirect("/app/v2#mailSent")
     #return HttpResponse('We have sent you a confirmation mail. Please verify to join the IdeaScale Initiative ' + str(initiative_url)) #just for debugging
 
 def check_user(request): #puede que le agregue otro parametro que me diga si el id es de FB o de IS
     user_id = request.GET.get('user_id')
+    initiative_url = request.GET.get('initiative_url')
+    fb_app = _get_initiative_fb_app(initiative_url)
     try:
         msg_logged = _('Congrats!, You are already logged into') + ' <b>Social Ideation App</b>. '
         msg_group = _('{}group{}').format('<a href="{}" target="_blank"><u>','</u></a>')
         msg_join = _('Join the ')
         msg_ini = _('of the initiative to start participate from Facebook')
-        user = SocialNetworkAppUser.objects.get(external_id=user_id)
+        user = SocialNetworkAppUser.objects.get(external_id=user_id, snapp=fb_app)
         # Taking (hardcoded) the first active initiative where the user participate in
         fb_app = user.snapp
         for initiative in fb_app.initiative_set.all():
@@ -517,7 +558,13 @@ def check_user(request): #puede que le agregue otro parametro que me diga si el 
 def write_permissions_fb(request):
     access_token = request.GET.get('access_token')
     user_id = request.GET.get('user_id')
-    initiatiative_url = request.GET.get('initiative_url')
+    initiative_url = request.GET.get('initiative_url')
     demo_data = _get_demo_data(request)
-    _save_user(user_id, access_token, initiatiative_url, 'write', demo_data)
-    return redirect('/#joinFB')
+    _save_user(user_id, access_token, initiative_url, 'write', demo_data)
+    logger.info('26oct ' + str(request.get_full_path()))
+    #return redirect('/#joinFB')
+    if initiative_url == URL_1:
+        #return redirect("/#joinFB")
+        return redirect("/app/v1#joinFB")
+    elif initiative_url == URL_2:
+        return redirect("/app/v2#joinFB")

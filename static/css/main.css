@@ -2324,3 +2324,37 @@ form select:focus {
 }
 
 /*----------------*/
+
+/*Back to Top*/
+.generate-back-to-top, .generate-back-to-top:visited {
+    font-size: 20px;
+    background: rgba(0, 0, 0, 0.4) none repeat scroll 0% 0%;
+    color: #FFF;
+    border-radius: 3px;
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    line-height: 40px;
+    width: 40px;
+    text-align: center;
+}
+
+.generate-back-to-top .screen-reader-text {
+    left: 0px;
+}
+
+.screen-reader-text {
+    clip: rect(1px, 1px, 1px, 1px);
+    position: absolute !important;
+}
+
+/*----------------*/
+
+blockquote:before{
+   display: block;
+   height: 0;
+   content: "“";
+   margin-left: -130%;
+   font: italic 400%/1 Cochin,Georgia,"Times New Roman", serif;
+   color: #999;
+}

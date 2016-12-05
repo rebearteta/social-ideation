@@ -176,7 +176,7 @@ def do_create_update_comment(platform, initiative, comment, source):
 def _prepare_email_msg(content, author_name_utf8, type_content, snapp, type_email, language, parent_author):
     activate(language)
     subject = _('Participa en tu Educacion')
-    subject = 'Participa en tu Educación'
+    subject = content.initiative.name
 
     if type_content == 'idea':
         t_content = _('idea')
@@ -214,16 +214,18 @@ def _prepare_email_msg(content, author_name_utf8, type_content, snapp, type_emai
     if content.source == 'consultation_platform':
         url = snapp.community.url
         url_name = 'el Grupo de Facebook'
-        pub_url = '{}/{}'.format(snapp.community.url, content.sn_id)
+        pub_url = 'https://www.facebook.com/{}'.format(content.sn_id)
     else:
         url = content.initiative.url   
         url_name = 'IdeaScale'
-        pub_url = '{}/a/dtd/{}-41191'.format(content.initiative.url, content.cp_id)
+        pub_url = '{}/a/dtd/{}-{}'.format(content.initiative.url, content.cp_id, content.initiative.community_id)
 
     ctx = {
         'author': author_name_utf8,
         'initiative_name': content.initiative.name,
         'initiative_url': content.initiative.url,
+        'initiative_site_url': content.initiative.site_url,
+        'initiative_community_id': content.initiative.community_id,
         'group_url': snapp.community.url,
         'type_content': t_content,
         'url': url,
@@ -270,7 +272,7 @@ def _prepare_email_msg(content, author_name_utf8, type_content, snapp, type_emai
 def _send_notification_email(recipient_address, subject, msg):
     try:
         to_email = [recipient_address]
-        from_email = 'Participa en tu Educación <participa@uc.edu.py>'
+        from_email = 'Participa <participa@uc.edu.py>'
         email = EmailMessage(subject, msg, to=to_email, from_email=from_email)
         #email = EmailMessage(subject, msg, to=to_email)
         email.content_subtype = 'html'
@@ -554,7 +556,7 @@ def publish_idea_sn(idea, sn_app, mode=None):
                 #    'picture': LOGO_IDEASCALE_VIA
                 #}
                 # From now, let's don't include the attachment
-                app_user = SocialNetworkAppUser.objects.get(email=idea.author.email)
+                app_user = SocialNetworkAppUser.objects.get(email=idea.author.email, snapp=sn_app)
                 return _do_publish_idea_sn(sn_app, idea, text_to_sn, mode, app_user)
                 
     elif idea.has_changed:
@@ -564,7 +566,7 @@ def publish_idea_sn(idea, sn_app, mode=None):
         if sn_app.community.type == 'page':
             _do_edit_idea_sn(sn_app, idea, text_to_sn)
         else:
-            app_user = SocialNetworkAppUser.objects.get(email=idea.author.email)
+            app_user = SocialNetworkAppUser.objects.get(email=idea.author.email, snapp=sn_app)
             if not _user_can_publish(idea, author_name_utf8, sn_app, 'idea'):
                 return None
             else:
@@ -656,7 +658,7 @@ def publish_comment_sn(comment, sn_app, mode=None):
             if not _user_can_publish(comment, author_name_utf8, sn_app, 'comment'):
                 return None
             else:
-                app_user = SocialNetworkAppUser.objects.get(email=comment.author.email)
+                app_user = SocialNetworkAppUser.objects.get(email=comment.author.email, snapp=sn_app)
                 try:
                     if comment.parent == 'idea':
                         parent = Idea.objects.get(id=comment.parent_idea.id)
@@ -683,7 +685,7 @@ def publish_comment_sn(comment, sn_app, mode=None):
         if sn_app.community.type == 'page':
             _do_edit_comment_sn(sn_app, comment, text_to_sn)
         else:
-            app_user = SocialNetworkAppUser.objects.get(email=comment.author.email)
+            app_user = SocialNetworkAppUser.objects.get(email=comment.author.email, snapp=sn_app)
             if not _user_can_publish(comment, author_name_utf8, sn_app, 'comment'):
                 return None
             else:
@@ -731,7 +733,7 @@ def _user_can_publish(content, author_name_utf8, sn_app, type_content):
     else:
         initiative = content.initiative
         ini_language = initiative.language
-        if not SocialNetworkAppUser.objects.filter(email=content.author.email).exists():
+        if not SocialNetworkAppUser.objects.filter(email=content.author.email, snapp=sn_app).exists():
             log_msg = 'It seems the user {} has not logged into the app, his/her {} ' \
                       'cannot be published in the initiative\'s group' \
                       .format(content.author.email if content.author.email else author_name_utf8,
@@ -749,7 +751,7 @@ def _user_can_publish(content, author_name_utf8, sn_app, type_content):
             logger.info(log_msg)
             return False
         else:
-            app_user = SocialNetworkAppUser.objects.get(email=content.author.email)
+            app_user = SocialNetworkAppUser.objects.get(email=content.author.email, snapp=sn_app)
             if not app_user.write_permissions:
                 log_msg = 'The author {} did\'nt give write permissions, so ' \
                           'his/her {} cannot be published'  \
@@ -802,7 +804,9 @@ def publish_idea_cp(idea):
     template_idea_cp = '{}\n\n----------------\n\n'
     template_idea_cp += _get_str_language(initiative.language, 'author_p')
     template_idea_cp += '\n' + _get_str_language(initiative.language, 'link')
+    logger.warning('10nov Idea text: ' + idea.text)
     text_uf8 = convert_to_utf8_str(idea.text)
+    logger.warning('10nov Idea text UTF8: ' + text_uf8)
     author_name_utf8 = convert_to_utf8_str(idea.author.screen_name)
 
     if _is_in_black_list(idea.author):
@@ -810,6 +814,9 @@ def publish_idea_cp(idea):
         return
 
     text_cplatform = remove_hashtags(text_uf8)
+
+    if len(text_cplatform) == 0:
+        return
 
     campaign = idea.campaign
     cplatform = initiative.platform
@@ -1561,22 +1568,28 @@ def cud_initiative_ideas(platform, initiative):
         update_or_create_content(platform, idea, Idea, filters, idea_attrs, editable_fields, 'consultation_platform',
                                  changeable_fields)
 
-def update_IS_user_demographic_data():
-    initiative = IS_Initiative.objects.all()[0]
+def update_IS_user_demographic_data(initiative):
+    is_initiative = IS_Initiative.objects.get(url=initiative.url)
     is_users = ParticipaUser.objects.all().filter(birthdate = None).exclude(ideascale_id = None)
     for user in is_users:
         try:
-            url = initiative.url + '/a/rest/v1/members/' + str(user.ideascale_id)
-            r = requests.get(url, headers = {'api_token' : initiative.token})
+            url = is_initiative.url + '/a/rest/v1/members/' + str(user.ideascale_id)
+            r = requests.get(url, headers = {'api_token' : is_initiative.token})
             user_data = r.json()
             if 'profileQuestions' in user_data.keys():
-                if user_data['profileQuestions']['Fecha de Nacimiento'] != '':
-                    date_params = user_data['profileQuestions']['Fecha de Nacimiento'].split('/')
-                    user.birthdate = date(int(date_params[2]), int(date_params[0]), int(date_params[1]))
-                if user_data['profileQuestions']['Sexo'] != '':
-                    user.sex =  user_data['profileQuestions']['Sexo']
-                if user_data['profileQuestions']['Ciudad de Residencia'] != '':
-                    user.city =  user_data['profileQuestions']['Ciudad de Residencia']
+                if 'Fecha de Nacimiento' in user_data['profileQuestions'].keys():
+                    if user_data['profileQuestions']['Fecha de Nacimiento'] != '':
+                        date_params = user_data['profileQuestions']['Fecha de Nacimiento'].split('/')
+                        user.birthdate = date(int(date_params[2]), int(date_params[0]), int(date_params[1]))
+                if 'Sexo' in user_data['profileQuestions'].keys():
+                    if user_data['profileQuestions']['Sexo'] != '':
+                        user.sex =  user_data['profileQuestions']['Sexo']
+                if 'Ciudad de Residencia' in user_data['profileQuestions'].keys():
+                    if user_data['profileQuestions']['Ciudad de Residencia'] != '':
+                        user.city =  user_data['profileQuestions']['Ciudad de Residencia']
+                if 'Profesión' in user_data['profileQuestions'].keys():
+                    if user_data['profileQuestions']['Profesión'] != '':
+                        user.profession = user_data['profileQuestions']['Profesión']
                 user.save()
         except Exception as e:
             logger.warning('Error when trying to get demographic data from IS user: ' + user.first_name + ' ' + user.last_name + ': ' + str(e)) 
@@ -1592,11 +1605,15 @@ def notify_new_campaigns(initiative):
                     'campaign': campaign.name,
                     'group_url': community.url,
                     'initiative_url': initiative.url,
+                    'initiative_name': initiative.name,
+                    'initiative_site_url': initiative.site_url,
+                    'initiative_community_id': initiative.community_id,                    
                     'hashtag' : campaign.hashtag
                 }
+                subject = initiative.name
                 html_msg = get_template('app/email/email_new_campaign.html').render(Context(ctx))
                 txt_msg = render_to_string('app/email/email_new_campaign.txt', ctx)
-                ret = _send_notification_email(user.email, 'Participa en tu Educación', html_msg)
+                ret = _send_notification_email(user.email, subject, html_msg)
             campaign.notified = True
             campaign.save()
     except Exception as e:
@@ -1618,16 +1635,22 @@ def count_other_platform_votes():
         comment.payload = msg
         comment.save()
 
-def notify_new_users():
+def notify_new_users(initiative):
     try:
-        unnotified_users = ParticipaUser.objects.filter(welcome_msg_sent=False)
+        unnotified_users = ParticipaUser.objects.filter(welcome_msg_sent=False, initiative=initiative)
         for user in unnotified_users:
             try:
                 #snapp_user = SocialNetworkAppUser.objects.filter(participa_user = user)[0]
-                ctx = { 'author' : user.first_name + ' ' + user.last_name }
+                ctx = {
+                    'author' : user.first_name + ' ' + user.last_name,
+                    'initiative_name': initiative.name,
+                    'initiative_site_url': initiative.site_url,
+                    'initiative_community_id': initiative.community_id 
+                }
+                subject = initiative.name
                 html_msg = get_template('app/email/email_new_user.html').render(Context(ctx))
                 txt_msg = render_to_string('app/email/email_new_user.txt', ctx)
-                ret = _send_notification_email(user.email, 'Participa en tu Educación', html_msg)
+                ret = _send_notification_email(user.email, subject, html_msg)
                 user.welcome_msg_sent = True
                 user.save()
             except:
@@ -1635,42 +1658,53 @@ def notify_new_users():
     except Exception as e:
         logger.error('Error when try to notify new users: ' + str(e))
 
-def notify_join_group():
+def notify_join_group(initiative):
     try:
-        users = SocialNetworkAppUser.objects.all()
-        snapp = SocialNetworkApp.objects.all()[0]
+        #snapp = SocialNetworkApp.objects.all()[0]
+        snapp = initiative.social_network.all()[0]
+        users = SocialNetworkAppUser.objects.filter(snapp=snapp)
         members = get_community_members_list(snapp)
+        community = snapp.community
         for user in users:
             if not is_a_community_member(user.snapp, user, members):
 	        now = timezone.now()
                 delta = now - user.registration_timestamp
-                logger.info("User registration timestamp: " + str(user.registration_timestamp))
-                logger.info("Now timestamp: " + str(now))
-                logger.info("Dif: " + str(delta))
+                logger.info("9nov User registration timestamp: " + str(user.registration_timestamp))
+                logger.info("9nov Now timestamp: " + str(now))
+                logger.info("9nov Dif: " + str(delta))
                 if delta.total_seconds() <= 5*60:
-                    logger.info("Invitation to join group sent to " + convert_to_utf8_str(user.name))
-                    ctx = { 'author' : user.name , 'group_url': user.snapp.community.url}
+                    logger.info("9nov Invitation to join group sent to " + convert_to_utf8_str(user.name))
+                    ctx = {
+                        'author' : user.name,
+                        'initiative_name': initiative.name,
+                        'initiative_site_url': initiative.site_url,
+                        'initiative_community_id': initiative.community_id,
+                        'community_url' : community.url
+                    }
+                    subject = initiative.name
                     html_msg = get_template('app/email/email_invitation_join_group.html').render(Context(ctx))
                     txt_msg = render_to_string('app/email/email_invitation_join_group.txt', ctx)
-                    ret = _send_notification_email(user.email, 'Participa en tu Educación', html_msg)
-            #else:
-            #    logger.info('This user is a community member ' + user.name)
+                    ret = _send_notification_email(user.email, subject, html_msg)
+            else:
+                logger.info('9nov This user is a community member ' + user.name)
     except Exception as e:
         logger.error('Error when try to notify users to join group: ' + str(e))
 
 def check_reactivated_accounts_activity():
-    try:
-        snapp = SocialNetworkApp.objects.all()[0]
-        members = get_community_members_list(snapp)
-        deactivated_ideas = Idea.objects.all().exclude(deactivation_time = None)
-        for idea in deactivated_ideas:
-            if idea.author.external_id in members:
-                idea.deactivation_time = None
-                idea.save()
-        deactivated_comments = Comment.objects.all().exclude(deactivation_time = None)
-        for comment in deactivated_comments:
-             if comment.author.external_id in members:
-                 comment.deactivation_time = None
-                 comment.save()
-    except Exception as e:
-        logger.error('Error when trying to check reactivated accounts activity: ' + str(e))
+    snapps = SocialNetworkApp.objects.all()
+    for snapp in snapps:
+        try:
+            #snapp = SocialNetworkApp.objects.all()[0]
+            members = get_community_members_list(snapp)
+            deactivated_ideas = Idea.objects.all().exclude(deactivation_time = None)
+            for idea in deactivated_ideas:
+                if idea.author.external_id in members:
+                    idea.deactivation_time = None
+                    idea.save()
+            deactivated_comments = Comment.objects.all().exclude(deactivation_time = None)
+            for comment in deactivated_comments:
+                if comment.author.external_id in members:
+                    comment.deactivation_time = None
+                    comment.save()
+        except Exception as e:
+            ilogger.error('Error when trying to check reactivated accounts activity: ' + str(e))
