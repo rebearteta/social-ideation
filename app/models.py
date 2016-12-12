@@ -102,6 +102,7 @@ class Initiative(models.Model):
                                help_text="Max length 14 characters (do not include '#')")
     url = models.URLField(editable=False)
     site_url = models.URLField(editable=True, default=None, null=True, blank=True)
+    survey_url = models.URLField(editable=True, default=None, null=True, blank=True)
     users = models.IntegerField(editable=False, default=0)
     ideas = models.IntegerField(editable=False, default=0)
     votes = models.IntegerField(editable=False, default=0)

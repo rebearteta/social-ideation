@@ -1645,7 +1645,8 @@ def notify_new_users(initiative):
                     'author' : user.first_name + ' ' + user.last_name,
                     'initiative_name': initiative.name,
                     'initiative_site_url': initiative.site_url,
-                    'initiative_community_id': initiative.community_id 
+                    'initiative_community_id': initiative.community_id,
+                    'survey_url': initiative.survey_url 
                 }
                 subject = initiative.name
                 html_msg = get_template('app/email/email_new_user.html').render(Context(ctx))
