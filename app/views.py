@@ -380,8 +380,8 @@ def process_login(request):
     #return HttpResponse('It works')
     context = {}
     context['site1'] = get_initiative_info(URL_1)['site_url']
-    context['site2'] = get_initiative_info(URL_2)['site_url']
-    return render(request, 'app/new-index.html', context)
+    #context['site2'] = get_initiative_info(URL_2)['site_url']
+    return render(request, 'app/index.html', context)
     # if this is a POST request we need to process the form data
 
 def _get_initiative_fb_app(initiative_url):
