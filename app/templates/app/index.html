@@ -6,10 +6,10 @@
 
 <script type="text/javascript">
   $(document).ready( function() {
-    if (window.location == 'http://{{ site1 }}/' || 'http://www.{{ site1 }}/' ){
-        window.location = '{{ site1 }}/app/v1';
+    if (window.location == 'http://{{ site2 }}/' || window.location == 'http://www.{{ site2 }}/' ){
+        window.location = 'http://{{ site2 }}/app/v2';
     } else {
-        window.location = '{{ site1 }}/app/v2';
+        window.location = 'http://{{ site2 }}/app/v2';
     } } );
   </script>   
 {% endblock %}
