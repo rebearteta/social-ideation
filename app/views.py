@@ -234,6 +234,7 @@ def _get_campaigns (initiative_url):
     campaigns = Campaign.objects.filter(initiative__url = initiative_url)
     return campaigns
 
+# No longer used
 def index(request):
     # Detect the default language to show the page
     # If the preferred language is supported, the page will be presented in that language
@@ -375,14 +376,19 @@ def register_v1(request):
     return render(request, 'app/register-v1.html', context)
 
 
-# NOT USED. PROBABLY IT'S GONNA BE DELETED
+# TODO change this function name. This is the new index redirect
 def process_login(request):
-    #return HttpResponse('It works')
     context = {}
-    context['site1'] = get_initiative_info(URL_1)['site_url']
-    #context['site2'] = get_initiative_info(URL_2)['site_url']
+    # We remove the htt:// from the urls to do comparissons with and withouy www. in the beggining
+    try:
+        context['site1'] = get_initiative_info(URL_1)['site_url'].replace('http://', '')
+    except:
+        pass
+    try:
+        context['site2'] = get_initiative_info(URL_2)['site_url'].replace('http://', '')
+    except:
+        pass
     return render(request, 'app/index.html', context)
-    # if this is a POST request we need to process the form data
 
 def _get_initiative_fb_app(initiative_url):
     initiative = Initiative.objects.get(url=initiative_url)
