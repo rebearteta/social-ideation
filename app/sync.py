@@ -74,7 +74,11 @@ def _update_or_create_author(platform, author, source):
                     author = call_social_network_api(connector, 'get_info_user', params)
         attr_new_author = {'screen_name': author['name'], 'channel': source, 'external_id': author['id']}
         if 'email' in author.keys():
-            attr_new_author.update({'email': author['email'].lower()})
+            # anonymous authors have null on email field, so we must catch that exception
+            try:
+                attr_new_author.update({'email': author['email'].lower()})
+            except:
+                attr_new_author.update({'email': ""})
         if 'url' in author.keys():
             attr_new_author.update({'url': author['url']})
         if source == 'consultation_platform':
@@ -1416,7 +1420,8 @@ def do_push_content(obj, type, last_obj=None, batch_reqs=None):
         # Push object to the initiative's social networks
         for social_network in obj.initiative.social_network.all():
             if _is_social_network_enabled(social_network):
-                if type == 'idea':
+            # ideas with no author email are anonymous and should not be synced
+                if type == 'idea' and obj.author.email != "":
                     if social_network.batch_requests and obj.is_new:
                         if not social_network.name.lower() in batch_reqs.keys():
                             batch_reqs[social_network.name.lower()] = {'reqs': [], 'objs': []}
