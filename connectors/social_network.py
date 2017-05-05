@@ -132,10 +132,8 @@ class Facebook(SocialNetworkBase):
         if resp.status_code and not 200 <= resp.status_code < 300:
             raise ConnectorError('Error when trying to get long-lived access token')
         else:
-            str_resp = resp.text
-            resps = str_resp.split('&')
-            return {'access_token': resps[0].split('=')[1], 'expiration': ACCESS_TOKEN_EXP}
-            #return {'access_token': resps[0].split('=')[1], 'expiration': resps[1].split('=')[1]}
+            json_resp = json.loads(resp.text)
+            return {'access_token': json_resp['access_token'], 'expiration': json_resp['expires_in']}
 
     @classmethod
     def get_long_lived_page_token(cls, app_id, app_secret, access_token, page_id):
